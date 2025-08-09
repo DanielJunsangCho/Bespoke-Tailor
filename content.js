@@ -76,6 +76,9 @@ class JobPageDetector {
           this.isJobPage = true;
           this.extractJobData(config.selectors);
           return;
+        } else {
+          this.isJobPage = false;
+          this.jobData = null;
         }
       }
     }
@@ -354,7 +357,7 @@ class JobPageDetector {
   }
 
   injectResumeWidget() {
-    if (!this.isJobPage) return;
+    // if (!this.isJobPage) return;
 
     const existingWidget = document.getElementById('ai-resume-tailor-widget');
     if (existingWidget) return;
@@ -389,7 +392,7 @@ class JobPageDetector {
             <div class="job-detection-dot" id="jobDetectionDot"></div>
             <span id="jobDetectionText">Job page detected</span>
           </div>
-          <div id="jobDetectionDetail">${this.jobData?.title || 'Loading...'} at ${this.jobData?.company || '...'}</div>
+          <div id="jobDetectionDetail">${this.jobData?.title || 'Finding opportunity...'} ${this.jobData?.company ? 'at ' + this.jobData?.company : ''}</div>
         </div>
 
         <div class="widget-content">
@@ -430,8 +433,8 @@ class JobPageDetector {
     closeBtn?.addEventListener('click', () => this.handleCloseWidget());
 
     // Initialize widget state once
-    this.checkResumeStatus();
-    this.updateJobDetectionDisplay();
+    // this.checkResumeStatus();
+    // this.updateJobDetectionDisplay();
   }
 
   handleCloseWidget() {
@@ -545,14 +548,14 @@ class JobPageDetector {
         setTimeout(() => {
           this.hideLoading();
           this.checkResumeStatus();
-        }, 2000);
+        }, 1000);
       } else {
         throw new Error(response.error || 'Failed to tailor resume');
       }
     } catch (error) {
       console.error('Error tailoring resume:', error);
       this.showLoading('Error: ' + error.message);
-      setTimeout(() => this.hideLoading(), 3000);
+      setTimeout(() => this.hideLoading(), 2000);
     }
   }
 
@@ -576,7 +579,7 @@ class JobPageDetector {
         const maxSize = 10 * 1024 * 1024;
         if (file.size > maxSize) {
           this.showLoading('Error: File too large (max 10MB)');
-          setTimeout(() => this.hideLoading(), 3000);
+          setTimeout(() => this.hideLoading(), 2000);
           return;
         }
 
@@ -585,7 +588,7 @@ class JobPageDetector {
                              'text/plain'];
         if (!allowedTypes.includes(file.type) && !file.name.match(/\.(pdf|doc|docx|txt)$/i)) {
           this.showLoading('Error: Unsupported file type');
-          setTimeout(() => this.hideLoading(), 3000);
+          setTimeout(() => this.hideLoading(), 2000);
           return;
         }
 
@@ -606,7 +609,7 @@ class JobPageDetector {
           setTimeout(() => {
             this.hideLoading();
             this.checkResumeStatus();
-          }, 2000);
+          }, 1000);
         } else {
           throw new Error(response?.error || 'Failed to upload resume');
         }
@@ -751,7 +754,7 @@ class JobPageDetector {
               previousJobData.company !== this.jobData?.company) {
             this.updateJobDetectionDisplay();
           }
-        }, 1000); // 2 second debounce
+        }, 500); // 0.5 second debounce
       }
     });
 
@@ -763,10 +766,6 @@ class JobPageDetector {
 
   // Clean up timers when needed
   cleanup() {
-    if (this.jobDetectionRefreshInterval) {
-      clearInterval(this.jobDetectionRefreshInterval);
-      this.jobDetectionRefreshInterval = null;
-    }
     if (this.recheckTimeout) {
       clearTimeout(this.recheckTimeout);
       this.recheckTimeout = null;
@@ -776,11 +775,17 @@ class JobPageDetector {
 
 let jobPageDetector;
 
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  if (request.action === 'showResumeWidget') {
+    jobPageDetector.injectResumeWidget();
+  };
+});
+
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', () => {
     jobPageDetector = new JobPageDetector();
     window.jobPageDetector = jobPageDetector;
-  });
+  })
 } else {
   jobPageDetector = new JobPageDetector();
   window.jobPageDetector = jobPageDetector;

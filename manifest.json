@@ -31,7 +31,7 @@
     }
   ],
   "action": {
-    "default_title": "Bespoke Resume"
+    "default_title": "Bespoke Resume"  
   },
   "oauth2": {
     "client_id": "866896908660-gvkujh75pqtct9o12ra8obg234o21dof.apps.googleusercontent.com",

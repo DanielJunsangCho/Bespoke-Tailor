@@ -13,6 +13,10 @@ class BackgroundService {
       console.log('Bespoke Resume extension installed');
     });
 
+    chrome.action.onClicked.addListener((tab) => {
+      chrome.tabs.sendMessage(tab.id, { action: 'showResumeWidget' });
+    });
+
     chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       this.handleMessage(request, sender, sendResponse);
       return true;
@@ -41,7 +45,6 @@ class BackgroundService {
             sendResponse({ success: false, error: 'File data and name are required' });
             return;
           }
-          console.log('Uploading resume...');
           const uploadResult = await this.uploadResume(request.file, request.fileName, request.fileType);
           sendResponse({ success: true, data: uploadResult });
           break;
@@ -97,9 +100,9 @@ class BackgroundService {
 
   async uploadResume(fileData, fileName, fileType) {
     try {
-      // Skip Google Docs creation for now, just store locally
       const base64Data = fileData.split(',')[1];
-      // const docId = await this.createGoogleDoc(token, fileName, base64Data, fileType);
+      const token = await this.ensureAuthenticated();
+      const docId = await this.createGoogleDoc(token, fileName, base64Data, fileType);
       
       const resumeData = {
         docId: 'local-' + Date.now(), // Generate local ID
@@ -140,11 +143,16 @@ class BackgroundService {
         })
       });
 
+      console.log('createResponse', createResponse);
+
       if (!createResponse.ok) {
         throw new Error('Failed to create Google Doc');
       }
 
+      console.log('creating response for doc');
       const doc = await createResponse.json();
+
+      console.log('doc', doc);
       
       const updateResponse = await fetch(`https://docs.googleapis.com/v1/documents/${doc.documentId}:batchUpdate`, {
         method: 'POST',
