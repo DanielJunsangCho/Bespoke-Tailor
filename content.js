@@ -356,8 +356,8 @@ class JobPageDetector {
     return element ? element.textContent.trim() : '';
   }
 
-  injectResumeWidget() {
-    // if (!this.isJobPage) return;
+  injectResumeWidget(manualTrigger=false) {
+    if (!manualTrigger && !this.isJobPage) return;
 
     const existingWidget = document.getElementById('ai-resume-tailor-widget');
     if (existingWidget) return;
@@ -375,6 +375,9 @@ class JobPageDetector {
     } else {
       document.body.appendChild(widget);
     }
+
+    // Check resume status after widget is added to DOM
+    setTimeout(() => this.checkResumeStatus(), 100);
   }
 
   createWidgetHTML(widget) {
@@ -431,10 +434,6 @@ class JobPageDetector {
     uploadBtn?.addEventListener('click', () => this.handleUploadResume());
     historyBtn?.addEventListener('click', () => this.handleViewHistory());
     closeBtn?.addEventListener('click', () => this.handleCloseWidget());
-
-    // Initialize widget state once
-    // this.checkResumeStatus();
-    // this.updateJobDetectionDisplay();
   }
 
   handleCloseWidget() {
@@ -498,6 +497,7 @@ class JobPageDetector {
   async checkResumeStatus() {
     // Prevent multiple simultaneous calls
     if (this.isCheckingResumeStatus) return;
+    console.log("This should be printing out");
     this.isCheckingResumeStatus = true;
     
     try {
@@ -514,7 +514,8 @@ class JobPageDetector {
         statusElement.textContent = `Base resume uploaded (${new Date(result.baseResume.uploadDate).toLocaleDateString()})`;
         if (tailorBtn) tailorBtn.disabled = false;
       } else {
-        statusElement.textContent = 'No base resume uploaded yet';
+        statusElement.textContent = 'Please upload a resume to get started';
+        if (tailorBtn) tailorBtn.disabled = true;
       }
 
       if (result.resumeHistory && result.resumeHistory.length > 0) {
@@ -776,9 +777,9 @@ class JobPageDetector {
 let jobPageDetector;
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  if (request.action === 'showResumeWidget') {
-    jobPageDetector.injectResumeWidget();
-  };
+  if (request.action === 'updateJobDescription') {
+    jobPageDetector.injectResumeWidget(true);
+  }
 });
 
 if (document.readyState === 'loading') {

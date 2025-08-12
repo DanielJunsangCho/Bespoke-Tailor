@@ -14,7 +14,7 @@ class BackgroundService {
     });
 
     chrome.action.onClicked.addListener((tab) => {
-      chrome.tabs.sendMessage(tab.id, { action: 'showResumeWidget' });
+      chrome.tabs.sendMessage(tab.id, { action: 'updateJobDescription' });
     });
 
     chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
@@ -105,7 +105,7 @@ class BackgroundService {
       const docId = await this.createGoogleDoc(token, fileName, base64Data, fileType);
       
       const resumeData = {
-        docId: 'local-' + Date.now(), // Generate local ID
+        docId: docId,
         fileName,
         fileType,
         uploadDate: new Date().toISOString(),
@@ -272,18 +272,18 @@ class BackgroundService {
   async generateTailoredResume(baseResume, jobData, analysis) {
     return `TAILORED RESUME FOR: ${jobData.title} at ${jobData.company}
 
-Generated on: ${new Date().toLocaleDateString()}
+      Generated on: ${new Date().toLocaleDateString()}
 
-KEY OPTIMIZATIONS BASED ON JOB ANALYSIS:
-- Highlighted keywords: ${analysis.keywords.join(', ')}
-- Emphasized relevant skills: ${analysis.requiredSkills.slice(0, 5).join(', ')}
-- Adjusted for ${analysis.experienceLevel} level position
+      KEY OPTIMIZATIONS BASED ON JOB ANALYSIS:
+      - Highlighted keywords: ${analysis.keywords.join(', ')}
+      - Emphasized relevant skills: ${analysis.requiredSkills.slice(0, 5).join(', ')}
+      - Adjusted for ${analysis.experienceLevel} level position
 
-[Original resume content would be processed and tailored here by AI service]
+      [Original resume content would be processed and tailored here by AI service]
 
-This is a placeholder for the AI-tailored resume content.
-The actual implementation would integrate with Claude or another AI service
-to intelligently modify the resume based on the job requirements.`;
+      This is a placeholder for the AI-tailored resume content.
+      The actual implementation would integrate with Claude or another AI service
+      to intelligently modify the resume based on the job requirements.`;
   }
 
   async createTailoredDocument(token, content, jobData) {
