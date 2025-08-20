@@ -23,11 +23,19 @@ class ContentScript {
 
   private setupMessageListener(): void {
     chrome.runtime.onMessage.addListener((request, _sender, sendResponse) => {
-      if (request.action === 'showResumeWidget') {
-        this.showWidget();
-      } else if (request.action === 'getJobData') {
-        const jobData = this.jobDetector.getJobData();
-        sendResponse({ jobData });
+      try {
+        if (request.action === 'showResumeWidget') {
+          this.showWidget();
+          sendResponse({ success: true });
+        } else if (request.action === 'getJobData') {
+          const jobData = this.jobDetector.getJobData();
+          sendResponse({ jobData });
+        } else {
+          sendResponse({ success: false, error: 'Unknown action' });
+        }
+      } catch (error) {
+        console.error('Content script message error:', error);
+        sendResponse({ success: false, error: error instanceof Error ? error.message : 'Unknown error' });
       }
       return true; // Keep message channel open for async responses
     });

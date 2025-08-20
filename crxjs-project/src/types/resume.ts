@@ -24,7 +24,6 @@ export interface ResumeAnalysis {
 }
 
 export interface BaseResume {
-  docId: string;
   fileName: string;
   fileType: string;
   uploadDate: string;
@@ -32,7 +31,6 @@ export interface BaseResume {
 }
 
 export interface TailoredResume {
-  docId: string;
   jobTitle: string;
   company: string;
   jobUrl: string;
@@ -43,7 +41,6 @@ export interface TailoredResume {
 export interface TailoredResumeResult {
   content: string;
   analysis: ResumeAnalysis;
-  docId?: string;
 }
 
 export interface ATSReport {
@@ -66,7 +63,6 @@ export interface ChromeMessage {
   file?: string;
   fileName?: string;
   fileType?: string;
-  docId?: string;
 }
 
 export interface ChromeMessageResponse {

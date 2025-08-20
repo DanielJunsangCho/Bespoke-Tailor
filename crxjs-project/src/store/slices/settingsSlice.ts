@@ -41,20 +41,20 @@ export const saveSettings = createAsyncThunk(
 );
 
 // Async thunk for Google authentication
-export const authenticateGoogle = createAsyncThunk(
-  'settings/authenticateGoogle',
-  async () => {
-    const response = await chrome.runtime.sendMessage({
-      action: 'authenticateGoogle'
-    });
+// export const authenticateGoogle = createAsyncThunk(
+//   'settings/authenticateGoogle',
+//   async () => {
+//     const response = await chrome.runtime.sendMessage({
+//       action: 'authenticateGoogle'
+//     });
     
-    if (!response.success) {
-      throw new Error(response.error || 'Authentication failed');
-    }
+//     if (!response.success) {
+//       throw new Error(response.error || 'Authentication failed');
+//     }
     
-    return response.data;
-  }
-);
+//     return response.data;
+//   }
+// );
 
 const settingsSlice = createSlice({
   name: 'settings',
@@ -96,21 +96,21 @@ const settingsSlice = createSlice({
         state.settings = { ...state.settings, ...action.payload };
       })
       
-      // Google auth cases
-      .addCase(authenticateGoogle.pending, (state) => {
-        state.isLoading = true;
-        state.error = null;
-      })
-      .addCase(authenticateGoogle.fulfilled, (state, action) => {
-        state.isLoading = false;
-        state.settings.googleToken = action.payload.token;
-        state.isAuthenticated = true;
-        state.error = null;
-      })
-      .addCase(authenticateGoogle.rejected, (state, action) => {
-        state.isLoading = false;
-        state.error = action.error.message || 'Authentication failed';
-      });
+      // // Google auth cases
+      // .addCase(authenticateGoogle.pending, (state) => {
+      //   state.isLoading = true;
+      //   state.error = null;
+      // })
+      // .addCase(authenticateGoogle.fulfilled, (state, action) => {
+      //   state.isLoading = false;
+      //   state.settings.googleToken = action.payload.token;
+      //   state.isAuthenticated = true;
+      //   state.error = null;
+      // })
+      // .addCase(authenticateGoogle.rejected, (state, action) => {
+      //   state.isLoading = false;
+      //   state.error = action.error.message || 'Authentication failed';
+      // });
   },
 });
 

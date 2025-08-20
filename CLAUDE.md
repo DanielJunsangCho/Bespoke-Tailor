@@ -2,12 +2,12 @@
 
 <!-- Workflow Overview -->
 The crxjs-project uses React/TypeScript with Redux for state management. Key components:
-- `background.ts`: Service worker with chrome.action.onClicked listener for widget injection
-- `content/main.tsx`: React content script with JobPageDetector and Redux-based ResumeWidget updates
-- `components/ResumeWidget.tsx`: React widget using Redux store for reactive job data updates  
-- `pages/history.tsx`: Full-page interface for managing tailored resume history
-- `services/jobDetector.ts`: MutationObserver for real-time job page detection with periodic checks
-- `store/`: Redux slices for resume, job, and settings state with reactive updates
+- `background.ts`: Simplified service worker handling click-to-inject, resume upload, and history page opening
+- `content/main.tsx`: React content script with periodic job detection and Redux store updates
+- `components/ResumeWidget.tsx`: React widget with Redux reactivity, prepared for MCP server integration
+- `components/HistoryPage.tsx`: Resume history management without Google Docs dependencies
+- `services/jobDetector.ts`: MutationObserver with 500ms periodic checks for real-time job detection
+- `store/slices/resumeSlice.ts`: Redux state for resume upload and history with composite ID system
 
 ## 2025-08-08  Compact Session
 
@@ -74,7 +74,7 @@ Removed popup entirely and implemented Redux-based reactive job data updates to 
 " Added JobPageDetector MutationObserver with periodic checks every 500ms for real-time job data monitoring
 " Implemented JSON comparison tracking to detect job data changes and update Redux store reactively
 
-### #NextSteps
+### #NextSteps #Deprecated
 " Test extension with click-to-inject functionality on various websites
 " Verify smooth job data updates without widget flickering on dynamic job sites
 " Validate JobPageDetector accuracy across different career platforms
@@ -85,3 +85,29 @@ Removed popup entirely and implemented Redux-based reactive job data updates to 
 
 ### #Background  
 Extension now uses click-to-inject pattern with Redux reactive updates, eliminating re-rendering flicker while maintaining real-time job detection
+
+## 2025-08-20 – Compact Session
+
+### #CurrentFocus
+Fixed Chrome extension service worker message passing errors and removed Google Docs dependencies for MCP server migration
+
+### #SessionChanges  
+" Fixed service worker message channel errors by adding proper try-catch blocks and sendResponse calls
+" Removed Google authentication, AI tailoring, and document creation functionality from background.ts
+" Updated HistoryPage to use composite IDs (company-createdDate) instead of Google docId references
+" Cleaned up TypeScript errors by removing unused imports and deprecated functionality
+" Simplified background service to handle only resume upload and history page opening
+" Added MCP server integration placeholders for tailoring functionality
+" Removed all Google Docs API dependencies and OAuth token management
+
+### #NextSteps
+" Integrate MCP server for LaTeX-based resume tailoring functionality  
+" Test extension service worker stability with new message handling
+" Implement MCP client connection for AI resume analysis and generation
+
+### #BugsAndTheories
+" Service worker message channel errors ⇒ Missing sendResponse calls and unhandled promise rejections
+" TypeScript compilation errors ⇒ Unused imports and references to removed Google Docs functionality
+
+### #Background
+Extension architecture simplified and prepared for MCP server integration, removing Google Docs dependencies and fixing message passing reliability

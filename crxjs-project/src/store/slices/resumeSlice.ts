@@ -74,7 +74,7 @@ const resumeSlice = createSlice({
     },
     deleteResumeFromHistory: (state, action: PayloadAction<string>) => {
       state.tailoredResumes = state.tailoredResumes.filter(
-        resume => resume.docId !== action.payload
+        resume => `${resume.company}-${resume.createdDate}` !== action.payload
       );
     },
     clearAllResumes: (state) => {

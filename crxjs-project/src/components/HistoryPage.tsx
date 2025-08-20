@@ -64,11 +64,11 @@ export const HistoryPage: React.FC = () => {
     setSortBy(value);
   };
 
-  const handleDeleteResume = async (docId: string) => {
+  const handleDeleteResume = async (resumeId: string) => {
     if (!confirm('Are you sure you want to delete this resume from your history? This action cannot be undone.')) {
       return;
     }
-    dispatch(deleteResumeFromHistory(docId));
+    dispatch(deleteResumeFromHistory(resumeId));
   };
 
   const handleClearAll = async () => {
@@ -79,16 +79,17 @@ export const HistoryPage: React.FC = () => {
     await chrome.storage.sync.set({ resumeHistory: [] });
   };
 
-  const openGoogleDoc = (docId: string) => {
-    const url = `https://docs.google.com/document/d/${docId}/edit`;
-    chrome.tabs.create({ url });
+  const openGoogleDoc = (jobUrl: string) => {
+    if (jobUrl && jobUrl !== 'undefined') {
+      chrome.tabs.create({ url: jobUrl });
+    } else {
+      alert('Job URL not available');
+    }
   };
 
-  const downloadResume = (docId: string) => {
-    chrome.runtime.sendMessage({
-      action: 'downloadResume',
-      docId: docId
-    });
+  const downloadResume = (resumeId: string) => {
+    // Placeholder for MCP server integration
+    alert(`Download functionality for ${resumeId} will be handled by MCP server`);
   };
 
   const viewJobPosting = (jobUrl: string) => {
@@ -212,7 +213,7 @@ export const HistoryPage: React.FC = () => {
         ) : (
           <div className="resume-grid">
             {filteredResumes.map((resume) => (
-              <div key={resume.docId} className="resume-card">
+              <div key={`${resume.company}-${resume.createdDate}`} className="resume-card">
                 <div className="resume-header">
                   <div className="job-title">{resume.jobTitle}</div>
                   <div className="company-name">{resume.company}</div>
@@ -231,8 +232,8 @@ export const HistoryPage: React.FC = () => {
                     <span className="detail-value">{resume.aiAnalysis?.keywords?.length || 0}</span>
                   </div>
                   <div className="detail-item">
-                    <span className="detail-label">Google Doc ID:</span>
-                    <span className="detail-value">{resume.docId.substring(0, 12)}...</span>
+                    <span className="detail-label">Job URL:</span>
+                    <span className="detail-value">{resume.jobUrl ? 'Available' : 'N/A'}</span>
                   </div>
                 </div>
 
@@ -250,19 +251,19 @@ export const HistoryPage: React.FC = () => {
                 <div className="resume-actions">
                   <button 
                     className="btn btn-primary" 
-                    onClick={() => openGoogleDoc(resume.docId)}
+                    onClick={() => openGoogleDoc(resume.jobUrl)}
                   >
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
                       <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6" stroke="currentColor" strokeWidth="2"/>
                       <polyline points="15,3 21,3 21,9" stroke="currentColor" strokeWidth="2"/>
                       <line x1="10" y1="14" x2="21" y2="3" stroke="currentColor" strokeWidth="2"/>
                     </svg>
-                    Open Doc
+                    Open Job
                   </button>
                   
                   <button 
                     className="btn btn-secondary" 
-                    onClick={() => downloadResume(resume.docId)}
+                    onClick={() => downloadResume(`${resume.company}-${resume.jobTitle}`)}
                   >
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
                       <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" stroke="currentColor" strokeWidth="2"/>
@@ -285,7 +286,7 @@ export const HistoryPage: React.FC = () => {
                   
                   <button 
                     className="btn btn-secondary delete-btn" 
-                    onClick={() => handleDeleteResume(resume.docId)}
+                    onClick={() => handleDeleteResume(`${resume.company}-${resume.createdDate}`)}
                   >
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
                       <path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14z" stroke="currentColor" strokeWidth="2"/>
