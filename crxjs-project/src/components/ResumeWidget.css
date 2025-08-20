@@ -34,7 +34,7 @@
 }
 
 .widget-header {
-  background: linear-gradient(135deg, 
+  background: linear-gradient(300deg, 
     #c4a381 0%, 
     #8b7db8 50%,
     #d49cb8 100%);
@@ -289,7 +289,6 @@
     0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
-/* Add subtle inner glow effect */
 .btn::before {
   content: '';
   position: absolute;
@@ -322,10 +321,6 @@
   backdrop-filter: blur(10px);
 }
 
-.loading-section.hidden {
-  display: none;
-}
-
 .spinner {
   width: 20px;
   height: 20px;
@@ -340,11 +335,29 @@
   100% { transform: rotate(360deg); }
 }
 
+.loading-section.hidden {
+  display: none;
+}
+
 #loadingText {
   font-size: 14px;
   color: #d97706;
   font-weight: 600;
   font-family: 'Inter', sans-serif;
+}
+
+.error-message {
+  background: linear-gradient(135deg, 
+    rgba(239, 68, 68, 0.1) 0%, 
+    rgba(220, 38, 38, 0.1) 100%);
+  border: 2px solid rgba(239, 68, 68, 0.3);
+  border-radius: 16px;
+  padding: 16px;
+  margin-top: 16px;
+  font-size: 14px;
+  color: #dc2626;
+  font-weight: 500;
+  backdrop-filter: blur(10px);
 }
 
 /* Mobile responsiveness */
@@ -361,7 +374,7 @@
   }
   
   .widget-header h3 {
-    font-size: 25px;
+    font-size: 20px;
   }
   
   .widget-content {
@@ -374,55 +387,15 @@
   }
 }
 
-/* Tablet adjustments */
 @media (max-width: 1024px) {
   .ai-resume-tailor-widget {
     width: 320px;
   }
 }
 
-/* Large screen optimization */
 @media (min-width: 1400px) {
   .ai-resume-tailor-widget {
     width: 360px;
     right: 30px;
   }
-}
-
-/* Legacy button automatically inherits the same styles */
-.ai-resume-tailor-button {
-  padding: var(--btn-padding);
-  border: none;
-  border-radius: var(--btn-border-radius);
-  font-size: var(--btn-font-size);
-  font-weight: var(--btn-font-weight);
-  font-family: var(--btn-font-family);
-  cursor: pointer;
-  transition: var(--btn-transition);
-  text-align: center;
-  position: relative;
-  overflow: hidden;
-  letter-spacing: var(--btn-letter-spacing);
-  backdrop-filter: var(--btn-backdrop-filter);
-  
-  background: var(--btn-primary-bg);
-  color: var(--btn-primary-color);
-  border: var(--btn-primary-border);
-  box-shadow: var(--btn-primary-shadow);
-  
-  /* Legacy-specific positioning */
-  position: fixed;
-  top: 20px;
-  right: 20px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  z-index: 10000;
-  user-select: none;
-}
-
-.ai-resume-tailor-button:hover {
-  transform: var(--btn-hover-transform);
-  box-shadow: var(--btn-hover-shadow);
-  background: var(--btn-hover-bg);
 }
