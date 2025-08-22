@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAppSelector, useAppDispatch } from '../hooks/redux';
-import { uploadResume, loadResumeHistory } from '../store/slices/resumeSlice';
+import { uploadResume, loadResumeHistory, tailorResume } from '../store/slices/resumeSlice';
 import './ResumeWidget.css';
 
 interface ResumeWidgetProps {
@@ -92,9 +92,12 @@ export const ResumeWidget: React.FC<ResumeWidgetProps> = ({ onClose }) => {
   const handleTailorResume = async () => {
     if (!jobData) return;
 
-    setLoadingMessage('Resume tailoring will be handled by MCP server...');
+    setLoadingMessage('Tailoring your resume...');
     setShowLoading(true);
     setTimeout(() => setShowLoading(false), 2000);
+
+    const result = await(dispatch(tailorResume(jobData)));
+    
   };
 
   const handleViewHistory = () => {

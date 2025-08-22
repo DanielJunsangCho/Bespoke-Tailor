@@ -7,11 +7,15 @@ export default defineManifest({
   description: 'Automatically tailor your resume for job applications using AI',
   version: pkg.version,
   icons: {
-    48: 'public/logo.png',
+    16: 'public/16-logo.png',
+    48: 'public/48-logo.png',
+    128: 'public/128-logo.png',
   },
   action: {
     default_icon: {
-      48: 'public/logo.png',
+      16: 'public/16-logo.png',
+      48: 'public/48-logo.png',
+      128: 'public/128-logo.png',
     },
     default_title: 'Bespoke Resume'
   },
@@ -22,26 +26,24 @@ export default defineManifest({
     'activeTab',
     'storage',
     'identity',
-    'scripting'
+    'scripting',
   ],
   host_permissions: [
     'https://*/*',
     'http://*/*',
-    'https://docs.google.com/*',
-    'https://www.googleapis.com/*'
   ],
   content_scripts: [{
     js: ['src/content/main.tsx'],
     matches: ['https://*/*', 'http://*/*'],
     run_at: 'document_idle'
   }],
-  oauth2: {
-    client_id: '866896908660-gvkujh75pqtct9o12ra8obg234o21dof.apps.googleusercontent.com',
-    scopes: [
-      'https://www.googleapis.com/auth/documents',
-      'https://www.googleapis.com/auth/drive.file'
-    ]
-  },
+  // oauth2: {
+  //   client_id: '866896908660-gvkujh75pqtct9o12ra8obg234o21dof.apps.googleusercontent.com',
+  //   scopes: [
+  //     'https://www.googleapis.com/auth/documents',
+  //     'https://www.googleapis.com/auth/drive.file'
+  //   ]
+  // },
   web_accessible_resources: [{
     resources: ['src/pages/history.html', 'assets/*'],
     matches: ['<all_urls>']

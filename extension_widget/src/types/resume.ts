@@ -63,6 +63,7 @@ export interface ChromeMessage {
   file?: string;
   fileName?: string;
   fileType?: string;
+  baseResume?: BaseResume;
 }
 
 export interface ChromeMessageResponse {

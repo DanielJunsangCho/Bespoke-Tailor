@@ -50,7 +50,17 @@ class BackgroundService {
           const uploadResult = await this.uploadResume(request.file, request.fileName, request.fileType || 'application/pdf');
           sendResponse({ success: true, data: uploadResult });
           break;
-          
+
+        case 'tailorResume':
+          if (!request.jobData || !request.baseResume) {
+            sendResponse({ success: false, error: 'Job data and base resume are required'})
+            return;
+          }
+
+          const tailorResult = await this.tailorResume(request.jobData, request.baseResume);
+          sendResponse({ success: true, data: tailorResult});
+          break;
+
         case 'openHistoryPage':
           await chrome.tabs.create({ url: chrome.runtime.getURL('src/pages/history.html') });
           sendResponse({ success: true });
@@ -77,12 +87,17 @@ class BackgroundService {
         originalContent: base64Data
       };
 
-      await chrome.storage.sync.set({ baseResume: resumeData });
+      // Use local storage instead of sync storage for larger files
+      await chrome.storage.local.set({ baseResume: resumeData });
       return resumeData;
     } catch (error) {
       console.error('Error uploading resume:', error);
       throw new Error('Failed to upload resume');
     }
+  }
+
+  private async tailorResume() {
+
   }
 }
 

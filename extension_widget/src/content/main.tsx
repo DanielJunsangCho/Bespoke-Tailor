@@ -64,14 +64,6 @@ class ContentScript {
         }
         console.log('Job data updated:', currentJobData);
       }
-      
-      // Show/hide widget based on job page status
-      // if (isCurrentlyOnJobPage && !this.widgetContainer) {
-      //   this.showWidget(); // Show widget if job page detected and widget not shown
-      // } else
-      //  if (!isCurrentlyOnJobPage && this.widgetContainer) {
-      //   this.hideWidget(); // Hide widget if no longer on job page
-      // }
     }, 500);
   }
 

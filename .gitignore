@@ -1,3 +1,5 @@
 claude_configs/
 CLAUDE.md.env
-mcp-client
+mcp-client/.env
+mcp-client/.venv
+mcp-client/uv.lock

@@ -39,19 +39,28 @@ export const uploadResume = createAsyncThunk(
 // Async thunk for tailoring resume
 export const tailorResume = createAsyncThunk(
   'resume/tailor',
-  async (jobData: any) => {
+  async (jobData: any, { getState }) => {
+    const state = getState() as any;
+    const baseResume = state.resume.baseResume;
+
+    if (!baseResume) {
+      throw new Error('No base resume available');
+    }
+
     const response = await chrome.runtime.sendMessage({
       action: 'tailorResume',
-      jobData
+      jobData,
+      baseResume
     });
-    
+
     if (!response.success) {
       throw new Error(response.error || 'Tailoring failed');
     }
-    
+
     return response.data;
   }
 );
+
 
 // Async thunk for loading resume history
 export const loadResumeHistory = createAsyncThunk(
