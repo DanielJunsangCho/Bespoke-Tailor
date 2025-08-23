@@ -1,4 +1,4 @@
-import { BaseResume, ChromeMessage, ChromeMessageResponse } from './types/resume';
+import { JobData, BaseResume, ChromeMessage, ChromeMessageResponse } from './types/resume';
 
 class BackgroundService {
   constructor() {
@@ -96,8 +96,29 @@ class BackgroundService {
     }
   }
 
-  private async tailorResume() {
+  private async tailorResume(jobData: JobData, baseResume: BaseResume) {
+    const apiUrl = process.env.REACT_APP_API_URL;
+    if (!apiUrl) {
+      throw new Error("API URL is not defined in environment variables");
+    }
 
+    await fetch(apiUrl, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ resume_data: baseResume, job_description: jobData })
+    })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+      })
+      .then(data => {
+        return data.result;
+      })
+      .catch(error => {
+        console.error('Fetch error:', error);
+      })
   }
 }
 
