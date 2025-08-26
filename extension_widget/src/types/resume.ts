@@ -34,6 +34,7 @@ export interface TailoredResume {
   jobTitle: string;
   company: string;
   jobUrl: string;
+  pdfUrl: string;
   createdDate: string;
   aiAnalysis: ResumeAnalysis;
 }

@@ -268,10 +268,10 @@ export class JobPageDetector {
   private extractCompanyName(): string {
     const hostname = window.location.hostname;
     
-    const companyMeta = document.querySelector('meta[property="og:site_name"], meta[name="author"], meta[name="company"]');
-    if (companyMeta) {
-      return companyMeta.getAttribute('content') || '';
-    }
+    // const companyMeta = document.querySelector('meta[property="og:site_name"], meta[name="author"], meta[name="company"]');
+    // if (companyMeta) {
+    //   return companyMeta.getAttribute('content') || '';
+    // }
 
     const companySelectors = [
       '.company-name, .organization, .employer, .brand-name',

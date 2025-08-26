@@ -1,0 +1,124 @@
+.tailored-resume-display {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 12px;
+  padding: 16px;
+  margin: 12px 0;
+  color: white;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+.tailored-resume-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.tailored-resume-header h4 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.company-name {
+  background: rgba(255, 255, 255, 0.2);
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.tailored-resume-item {
+  display: flex;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 12px;
+  cursor: grab;
+  transition: all 0.2s ease;
+  border: 2px dashed transparent;
+}
+
+.tailored-resume-item:hover {
+  background: rgba(255, 255, 255, 0.15);
+  transform: translateY(-1px);
+}
+
+.tailored-resume-item:active {
+  cursor: grabbing;
+}
+
+.tailored-resume-item[draggable="true"] {
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.resume-icon {
+  font-size: 24px;
+  margin-right: 12px;
+  opacity: 0.9;
+}
+
+.resume-info {
+  flex: 1;
+}
+
+.resume-title {
+  font-weight: 600;
+  font-size: 14px;
+  margin-bottom: 2px;
+}
+
+.resume-date {
+  font-size: 12px;
+  opacity: 0.8;
+}
+
+.resume-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.download-btn {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  border-radius: 6px;
+  padding: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  color: white;
+  transition: background 0.2s ease;
+}
+
+.download-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.drag-indicator {
+  font-size: 14px;
+  opacity: 0.7;
+  cursor: grab;
+}
+
+.usage-hint {
+  text-align: center;
+  font-size: 11px;
+  opacity: 0.8;
+  margin-top: 8px;
+}
+
+/* Animation for when resume appears */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.tailored-resume-display {
+  animation: slideIn 0.3s ease-out;
+}

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAppSelector, useAppDispatch } from '../hooks/redux';
+import { useResumeUpload } from '../hooks/useResumeUpload';
 import { loadResumeHistory, deleteResumeFromHistory, clearAllResumes } from '../store/slices/resumeSlice';
 import { TailoredResume } from '../types/resume';
 import './HistoryPage.css';
@@ -9,6 +10,7 @@ export const HistoryPage: React.FC = () => {
   const { tailoredResumes, isLoading } = useAppSelector(state => state.resume);
   const [filteredResumes, setFilteredResumes] = useState<TailoredResume[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
+  const { handleUploadResume, isUploading } = useResumeUpload();
   const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'company' | 'title'>('newest');
 
   useEffect(() => {
@@ -161,7 +163,10 @@ export const HistoryPage: React.FC = () => {
               </svg>
               Clear All
             </button>
-            <button className="btn btn-primary" onClick={() => chrome.tabs.create({ url: chrome.runtime.getURL('src/popup/index.html') })}>
+            <button className="btn btn-primary" 
+                    onClick={handleUploadResume}
+                    disabled={isUploading}
+            >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
                 <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2"/>
               </svg>

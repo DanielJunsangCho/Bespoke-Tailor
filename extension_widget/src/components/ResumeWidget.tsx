@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useAppSelector, useAppDispatch } from '../hooks/redux';
-import { uploadResume, loadResumeHistory, tailorResume } from '../store/slices/resumeSlice';
+import { loadResumeHistory, tailorResume } from '../store/slices/resumeSlice';
+import { useResumeUpload } from '../hooks/useResumeUpload';
+import TailoredResumeDisplay from './TailoredResumeDisplay';
 import './ResumeWidget.css';
 
 interface ResumeWidgetProps {
@@ -10,107 +12,28 @@ interface ResumeWidgetProps {
 
 export const ResumeWidget: React.FC<ResumeWidgetProps> = ({ onClose }) => {
   const dispatch = useAppDispatch();
-  const { baseResume, isLoading, error, uploadStatus, tailoredResumes } = useAppSelector(state => state.resume);
+  const { baseResume, isLoading, error, tailoredResumes } = useAppSelector(state => state.resume);
   const { currentJob: jobData } = useAppSelector(state => state.job); // Get job data from Redux
-  const [loadingMessage, setLoadingMessage] = useState<string>('');
-  const [showLoading, setShowLoading] = useState(false);
+  const { handleUploadResume, loadingMessage, showLoading, isUploading } = useResumeUpload();
+  const [tailorLoadingMessage, setTailorLoadingMessage] = useState<string>('');
+  const [showTailorLoading, setShowTailorLoading] = useState(false);
 
   useEffect(() => {
     dispatch(loadResumeHistory());
   }, [dispatch]);
 
-  const handleUploadResume = async () => {
-    setLoadingMessage('Select your resume file...');
-    setShowLoading(true);
-    
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = '.pdf,.doc,.docx,.txt';
-    input.style.position = 'absolute';
-    input.style.left = '-9999px';
-    input.style.opacity = '0';
-    
-    const processFile = async (file: File) => {
-      try {
-        if (!file) {
-          setShowLoading(false);
-          return;
-        }
-
-        const maxSize = 10 * 1024 * 1024; // 10MB
-        if (file.size > maxSize) {
-          setLoadingMessage('Error: File too large (max 10MB)');
-          setTimeout(() => setShowLoading(false), 2000);
-          return;
-        }
-
-        const allowedTypes = ['application/pdf', 'application/msword', 
-                             'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 
-                             'text/plain'];
-        if (!allowedTypes.includes(file.type) && !file.name.match(/\.(pdf|doc|docx|txt)$/i)) {
-          setLoadingMessage('Error: Unsupported file type');
-          setTimeout(() => setShowLoading(false), 2000);
-          return;
-        }
-
-        setLoadingMessage('Reading file...');
-        const fileData = await fileToBase64(file);
-        
-        setLoadingMessage('Uploading resume...');
-        
-        const result = await dispatch(uploadResume({
-          file: fileData,
-          fileName: file.name,
-          fileType: file.type
-        }));
-
-        if (uploadResume.fulfilled.match(result)) {
-          setLoadingMessage('Resume uploaded successfully!');
-          setTimeout(() => setShowLoading(false), 1000);
-        } else {
-          throw new Error('Upload failed');
-        }
-      } catch (error) {
-        console.error('Error uploading resume:', error);
-        setLoadingMessage(`Error: ${error instanceof Error ? error.message : 'Upload failed'}`);
-        setTimeout(() => setShowLoading(false), 2000);
-      }
-    };
-
-    input.onchange = async (event) => {
-      const file = (event.target as HTMLInputElement).files?.[0];
-      if (file) {
-        await processFile(file);
-      }
-      document.body.removeChild(input);
-    };
-    
-    document.body.appendChild(input);
-    setTimeout(() => input.click(), 10);
-  };
-
   const handleTailorResume = async () => {
     if (!jobData) return;
 
-    setLoadingMessage('Tailoring your resume...');
-    setShowLoading(true);
-    setTimeout(() => setShowLoading(false), 2000);
+    dispatch(tailorResume(jobData));
 
-    const result = await(dispatch(tailorResume(jobData)));
-    
+    setTailorLoadingMessage('Tailoring your resume...');
+    setShowTailorLoading(true);
+    setTimeout(() => setShowTailorLoading(false), 2000);
   };
 
   const handleViewHistory = () => {
     chrome.runtime.sendMessage({ action: 'openHistoryPage' });
-  };
-
-  const fileToBase64 = (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result as string);
-      reader.onerror = () => reject(new Error('Failed to read file'));
-      reader.readAsDataURL(file);
-    });
   };
 
   const getResumeStatusText = () => {
@@ -126,6 +49,21 @@ export const ResumeWidget: React.FC<ResumeWidgetProps> = ({ onClose }) => {
     }
     return 'Please upload a resume to get started';
   };
+
+  // Get tailored resume for the current job page
+  const getCurrentPageTailoredResume = () => {
+    if (!jobData || tailoredResumes.length === 0) return null;
+    
+    // Find the most recent tailored resume for this company/job
+    return tailoredResumes.find(resume => 
+      resume.company === jobData.company && 
+      resume.jobUrl === jobData.url
+    ) || tailoredResumes.find(resume => 
+      resume.company === jobData.company
+    );
+  };
+
+  const currentPageTailoredResume = getCurrentPageTailoredResume();
 
   return (
     <div className="ai-resume-tailor-widget">
@@ -157,6 +95,10 @@ export const ResumeWidget: React.FC<ResumeWidgetProps> = ({ onClose }) => {
             {getResumeStatusText()}
           </div>
 
+          {currentPageTailoredResume && (
+            <TailoredResumeDisplay tailoredResume={currentPageTailoredResume} />
+          )}
+
           <div className="action-buttons">
             <button 
               id="tailorResumeBtn"
@@ -170,7 +112,7 @@ export const ResumeWidget: React.FC<ResumeWidgetProps> = ({ onClose }) => {
               id="uploadResumeBtn"
               className="btn btn-secondary" 
               onClick={handleUploadResume}
-              disabled={uploadStatus === 'uploading'}
+              disabled={isUploading}
             >
               Upload Resume
             </button>
@@ -183,9 +125,9 @@ export const ResumeWidget: React.FC<ResumeWidgetProps> = ({ onClose }) => {
             </button>
           </div>
 
-          <div id="loadingSection" className={`loading-section ${!showLoading && !isLoading ? 'hidden' : ''}`}>
+          <div id="loadingSection" className={`loading-section ${!showLoading && !showTailorLoading && !isLoading ? 'hidden' : ''}`}>
             <div className="spinner"></div>
-            <span id="loadingText">{loadingMessage || 'Processing...'}</span>
+            <span id="loadingText">{loadingMessage || tailorLoadingMessage || 'Processing...'}</span>
           </div>
 
           {error && (

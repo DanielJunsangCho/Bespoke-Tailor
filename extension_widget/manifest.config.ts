@@ -3,8 +3,8 @@ import pkg from './package.json'
 
 export default defineManifest({
   manifest_version: 3,
-  name: 'Bespoke Resume',
-  description: 'Automatically tailor your resume for job applications using AI',
+  name: 'Bespoke Resume BETA',
+  description: 'Automatically tailor your resume for job applications using AI - THIS EXTENSION IS FOR BETA TESTING',
   version: pkg.version,
   icons: {
     16: 'public/16-logo.png',

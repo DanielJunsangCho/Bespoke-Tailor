@@ -57,7 +57,11 @@ export const tailorResume = createAsyncThunk(
       throw new Error(response.error || 'Tailoring failed');
     }
 
-    return response.data;
+    // Return both the PDF URL and job data for creating the TailoredResume object
+    return {
+      pdfUrl: response.data,
+      jobData
+    };
   }
 );
 
@@ -117,7 +121,16 @@ const resumeSlice = createSlice({
       })
       .addCase(tailorResume.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.tailoredResumes.unshift(action.payload);
+        const { pdfUrl, jobData } = action.payload;
+        const tailoredResume: TailoredResume = {
+          jobTitle: jobData.title,
+          company: jobData.company,
+          jobUrl: jobData.url,
+          pdfUrl: pdfUrl,
+          createdDate: new Date().toISOString(),
+          aiAnalysis: {} // This should be populated with actual analysis data from MCP server
+        };
+        state.tailoredResumes.unshift(tailoredResume);
         state.error = null;
       })
       .addCase(tailorResume.rejected, (state, action) => {
