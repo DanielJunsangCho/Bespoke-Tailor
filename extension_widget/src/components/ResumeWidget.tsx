@@ -25,11 +25,11 @@ export const ResumeWidget: React.FC<ResumeWidgetProps> = ({ onClose }) => {
   const handleTailorResume = async () => {
     if (!jobData) return;
 
-    dispatch(tailorResume(jobData));
-
     setTailorLoadingMessage('Tailoring your resume...');
     setShowTailorLoading(true);
     setTimeout(() => setShowTailorLoading(false), 2000);
+
+    dispatch(tailorResume(jobData));
   };
 
   const handleViewHistory = () => {

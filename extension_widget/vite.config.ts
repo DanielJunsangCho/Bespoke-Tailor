@@ -7,6 +7,9 @@ import manifest from './manifest.config'
 import { name, version } from './package.json'
 
 export default defineConfig({
+  define: {
+    __API_URL__: JSON.stringify('https://bespoke-tailor-backend-production.up.railway.app'),
+  },
   resolve: {
     alias: {
       '@': `${path.resolve(__dirname, 'src')}`,

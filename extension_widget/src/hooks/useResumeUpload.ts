@@ -54,8 +54,7 @@ export const useResumeUpload = () => {
         setLoadingMessage('Reading file...');
         const fileData = await fileToBase64(file);
         
-        setLoadingMessage('Uploading resume...');
-        
+        setLoadingMessage('Uploading resume...');        
         const result = await dispatch(uploadResume({
           file: fileData,
           fileName: file.name,

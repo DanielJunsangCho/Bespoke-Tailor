@@ -1,13 +1,5 @@
 import { JobData } from '../types/resume';
 
-interface JobBoardConfig {
-  patterns: string[];
-  selectors: {
-    title: string;
-    company: string;
-    description: string;
-  };
-}
 
 export class JobPageDetector {
   private isJobPage: boolean = false;
@@ -16,7 +8,7 @@ export class JobPageDetector {
   private recheckTimeout: number | null = null;
 
   constructor() {
-    this.debugMode = localStorage.getItem('aiResumeDebug') === 'true';
+    this.debugMode = true;
     this.init();
   }
 
@@ -34,76 +26,7 @@ export class JobPageDetector {
   }
 
   private detectJobPage(): void {
-    const url = window.location.href.toLowerCase();
-    const hostname = window.location.hostname.toLowerCase();
-    
-    const jobBoardPatterns: Record<string, JobBoardConfig> = {
-      'linkedin.com': {
-        patterns: ['/jobs/view/', '/jobs/collections/'],
-        selectors: {
-          title: 'h1.t-24, .jobs-unified-top-card__job-title',
-          company: '.jobs-unified-top-card__company-name, .job-details-jobs-unified-top-card__company-name',
-          description: '.jobs-description-content__text, .jobs-box__html-content'
-        }
-      },
-      'indeed.com': {
-        patterns: ['/viewjob?', '/jobs/'],
-        selectors: {
-          title: '[data-testid="jobsearch-JobInfoHeader-title"], h1.jobsearch-JobInfoHeader-title',
-          company: '[data-testid="inlineHeader-companyName"], .jobsearch-CompanyInfoContainer',
-          description: '#jobDescriptionText, .jobsearch-jobDescriptionText'
-        }
-      },
-      'glassdoor.com': {
-        patterns: ['/job-listing/', '/jobs/'],
-        selectors: {
-          title: '[data-test="job-title"], .jobHeader',
-          company: '[data-test="employer-name"], .employerName',
-          description: '#JobDescriptionContainer, .jobDescriptionContent'
-        }
-      },
-      'workday.com': {
-        patterns: ['/job/', '/jobs/'],
-        selectors: {
-          title: '[data-automation-id="jobPostingHeader"], h1',
-          company: '[data-automation-id="company"], .company-name',
-          description: '[data-automation-id="jobPostingDescription"], .job-description'
-        }
-      },
-      'greenhouse.io': {
-        patterns: ['/jobs/', '/job/'],
-        selectors: {
-          title: '.app-title, h1',
-          company: '.company-name, .app-company',
-          description: '#content, .job-post-content'
-        }
-      },
-      'lever.co': {
-        patterns: ['/jobs/', '/job/'],
-        selectors: {
-          title: '.posting-headline h2, h2',
-          company: '.company-name, .main-header-text',
-          description: '.posting-content, .job-description'
-        }
-      }
-    };
-
-    // Check known job boards first
-    for (const [domain, config] of Object.entries(jobBoardPatterns)) {
-      if (hostname.includes(domain)) {
-        const isMatch = config.patterns.some(pattern => url.includes(pattern));
-        if (isMatch) {
-          this.isJobPage = true;
-          this.extractJobData(config.selectors);
-          return;
-        } else {
-          this.isJobPage = false;
-          this.jobData = null;
-        }
-      }
-    }
-
-    // Enhanced generic detection for company websites
+    // Route everything through the improved generic detection
     this.detectCompanyJobPage();
   }
 
@@ -142,24 +65,10 @@ export class JobPageDetector {
       textLength: text.length
     });
     
-    if (this.debugMode) {
-      console.log('Bespoke Resume Debug:', {
-        url: window.location.href,
-        urlMatch,
-        keywordCount,
-        hasJobStructure,
-        hasApplicationElements,
-        confidence
-      });
-    }
-    
     if (confidence >= 0.6) {
       this.isJobPage = true;
       this.extractCompanyJobData();
       
-      if (this.debugMode) {
-        console.log('Job page detected!', this.jobData);
-      }
     }
   }
 
@@ -216,15 +125,6 @@ export class JobPageDetector {
     return Math.min(confidence, 1.0);
   }
 
-  private extractJobData(selectors: JobBoardConfig['selectors']): void {
-    this.jobData = {
-      title: this.getElementText(selectors.title),
-      company: this.getElementText(selectors.company),
-      description: this.getElementText(selectors.description),
-      url: window.location.href,
-      timestamp: new Date().toISOString()
-    };
-  }
 
   private extractCompanyJobData(): void {
     const title = this.extractJobTitle();
@@ -268,70 +168,270 @@ export class JobPageDetector {
   private extractCompanyName(): string {
     const hostname = window.location.hostname;
     
-    // const companyMeta = document.querySelector('meta[property="og:site_name"], meta[name="author"], meta[name="company"]');
-    // if (companyMeta) {
-    //   return companyMeta.getAttribute('content') || '';
-    // }
-
-    const companySelectors = [
-      '.company-name, .organization, .employer, .brand-name',
-      'header .logo img[alt], .header .logo img[alt]',
-      '.site-title, .site-name, .brand-title'
+    // Try meta tags first for official company name
+    const metaSelectors = [
+      'meta[property="og:site_name"]',
+      'meta[name="author"]',
+      'meta[name="company"]',
+      'meta[name="application-name"]',
+      'meta[property="og:title"]'
     ];
-
-    for (const selector of companySelectors) {
-      const element = document.querySelector(selector);
-      if (element) {
-        const text = element.textContent || element.getAttribute('alt') || '';
-        if (text.trim().length > 0) {
-          return text.trim();
+    
+    for (const selector of metaSelectors) {
+      const metaElement = document.querySelector(selector);
+      if (metaElement) {
+        const content = metaElement.getAttribute('content');
+        if (content && content.trim().length > 0 && !content.toLowerCase().includes('job') && !content.toLowerCase().includes('career')) {
+          return content.trim();
         }
       }
     }
 
-    return hostname.replace('www.', '').split('.')[0]
-      .replace(/[-_]/g, ' ')
-      .replace(/\b\w/g, l => l.toUpperCase());
-  }
-
-  private extractJobDescription(): string {
-    const descriptionSelectors = [
-      '.job-description, .position-description, .role-description',
-      '.job-details, .job-content, .position-details',
-      '.description, .content, .details',
-      'main, .main-content, .page-content, .content-area',
-      '.requirements, .responsibilities, .qualifications'
-    ];
-
-    let description = '';
-    
-    for (const selector of descriptionSelectors) {
-      const element = document.querySelector(selector);
-      if (element && element.textContent && element.textContent.trim().length > 200) {
-        description = element.textContent.trim();
-        break;
+    // Try hostname first for Greenhouse and similar job boards
+    if (hostname.includes('greenhouse.io')) {
+      // For Greenhouse, company name is usually in the subdomain
+      const subdomain = hostname.split('.')[0];
+      if (subdomain !== 'job-boards' && subdomain !== 'www') {
+        return this.cleanCompanyName(subdomain.replace(/[-_]/g, ' ').replace(/\b\w/g, l => l.toUpperCase()));
       }
     }
 
-    if (!description) {
-      const bodyText = document.body.textContent || '';
-      const nav = document.querySelector('nav')?.textContent || '';
-      const footer = document.querySelector('footer')?.textContent || '';
+    // Company-specific selectors ordered by reliability
+    const companySelectors = [
+      // Highly specific company name selectors
+      '.company-name, .companyName, .company_name, .organization-name',
+      '.employer, .employer-name, .employerName, .brand-name, .brandName',
       
-      description = bodyText
-        .replace(nav, '')
-        .replace(footer, '')
-        .trim()
-        .substring(0, 5000);
+      // Logo and header company identification
+      'header .logo img[alt], .header .logo img[alt], .brand img[alt]',
+      'header .company img[alt], .header .brand img[alt]',
+      '.logo img[alt], .brand img[alt], .company-logo img[alt]',
+      
+      // Title and navigation elements
+      '.site-title, .site-name, .brand-title, .company-title',
+      'header h1, .header h1, .masthead h1',
+      '.navbar-brand, .nav-brand, .site-brand',
+      
+      // Data attributes
+      '[data-testid*="company"], [data-test*="company"]',
+      '[data-cy*="company"], [data-automation-id*="company"]',
+      
+      // Breadcrumb and navigation context
+      '.breadcrumb a:first-child, nav a:first-child',
+      '.home-link, .brand-link, [href="/"] img[alt]',
+      
+      // Footer company info
+      'footer .company, .footer .company, footer .brand',
+      
+      // Greenhouse-specific patterns
+      '.company, .app-title, .header-company, h1 a',
+      '.board-header, .board-title, .job-board-header'
+    ];
+
+    let bestMatch = { text: '', score: 0 };
+    
+    for (const selector of companySelectors) {
+      const elements = document.querySelectorAll(selector);
+
+      elements.forEach(element => {
+        const text = element.textContent?.trim() || element.getAttribute('alt')?.trim() || '';
+        if (text.length > 0) {
+          const score = this.scoreCompanyName(text, selector, element);
+          if (this.debugMode) {
+            console.log('Company candidate:', { selector, text, score });
+          }
+          if (score > bestMatch.score) {
+            bestMatch = { text, score };
+          }
+        }
+      });
+    }
+    
+    if (bestMatch.text && bestMatch.score > 10) {
+      return this.cleanCompanyName(bestMatch.text);
     }
 
-    return description;
+    // Try to extract from page title
+    const pageTitle = document.title;
+    if (pageTitle.includes(' - ')) {
+      const parts = pageTitle.split(' - ');
+      // Usually company name is last part or first part
+      const lastPart = parts[parts.length - 1].trim();
+      const firstPart = parts[0].trim();
+      
+      if (!this.isJobRelatedTitle(lastPart)) {
+        return this.cleanCompanyName(lastPart);
+      } else if (!this.isJobRelatedTitle(firstPart)) {
+        return this.cleanCompanyName(firstPart);
+      }
+    }
+
+    // Fallback to hostname-based company name
+    return this.cleanCompanyName(
+      hostname.replace('www.', '').replace('careers.', '').replace('jobs.', '')
+        .split('.')[0]
+        .replace(/[-_]/g, ' ')
+        .replace(/\b\w/g, l => l.toUpperCase())
+    );
   }
 
-  private getElementText(selector: string): string {
-    const element = document.querySelector(selector);
-    return element?.textContent?.trim() || '';
+  private scoreCompanyName(text: string, selector: string, element: Element): number {
+    let score = 0;
+    
+    // Length scoring (sweet spot is 2-30 characters)
+    if (text.length >= 2 && text.length <= 30) score += 20;
+    else if (text.length <= 50) score += 10;
+    
+    // Selector specificity scoring
+    if (selector.includes('company') || selector.includes('brand')) score += 30;
+    else if (selector.includes('logo') || selector.includes('site-title')) score += 25;
+    else if (selector.includes('header') || selector.includes('nav')) score += 15;
+    
+    // Position scoring (header elements more likely to be company name)
+    if (element.closest('header, .header, .masthead, nav, .nav')) score += 15;
+    if (element.closest('footer, .footer')) score += 5; // footer less reliable
+    
+    // Content quality scoring
+    if (text.match(/^[A-Z][a-zA-Z\s&.,'-]+$/)) score += 10; // proper capitalization
+    if (!text.toLowerCase().includes('job') && !text.toLowerCase().includes('career') && !text.toLowerCase().includes('hire')) score += 15;
+    
+    // Penalty for generic terms
+    const genericTerms = ['home', 'welcome', 'menu', 'navigation', 'search', 'login', 'sign', 'apply'];
+    if (genericTerms.some(term => text.toLowerCase().includes(term))) score -= 20;
+    
+    return score;
   }
+
+  private isJobRelatedTitle(title: string): boolean {
+    const jobTerms = ['job', 'career', 'position', 'role', 'hiring', 'employment', 'vacancy', 'opening'];
+    return jobTerms.some(term => title.toLowerCase().includes(term));
+  }
+
+  private cleanCompanyName(name: string): string {
+    return name
+      .replace(/\s*[-|].*$/, '') // Remove everything after dash or pipe
+      .replace(/\s*(inc|llc|corp|ltd|co)\b\.?\s*$/i, '') // Remove corporate suffixes
+      .replace(/\s+careers?\b/i, '') // Remove 'career' or 'careers'
+      .replace(/\s+jobs?\b/i, '') // Remove 'job' or 'jobs'
+      .trim();
+  }
+
+  private extractJobDescription(): string {
+    // Get full body text first
+    const bodyText = document.body.textContent || '';
+    
+    // Remove noise elements
+    const elementsToRemove = [
+      'nav', 'header', 'footer', '.nav', '.header', '.footer',
+      '.menu', '.navigation', '.breadcrumb', '.sidebar', '.ads',
+      '.cookie-banner', '.privacy-notice', '.modal', '.popup'
+    ];
+    
+    let cleanText = bodyText;
+    elementsToRemove.forEach(selector => {
+      const elements = document.querySelectorAll(selector);
+      elements.forEach(element => {
+        if (element.textContent) {
+          cleanText = cleanText.replace(element.textContent, '');
+        }
+      });
+    });
+
+    // Remove AudioEye accessibility scripts (most aggressive first)
+    cleanText = cleanText.replace(/This website is AudioEye enabled.*?activate the button labeled[^.]*\./g, '');
+    cleanText = cleanText.replace(/!function\(\w*\)\{[^}]*\}\([^)]*\);/g, '');
+    cleanText = cleanText.replace(/var ae_f = function[^;]*;/g, '');
+    cleanText = cleanText.replace(/ae_f\.[^;]*;/g, '');
+    cleanText = cleanText.replace(/window\.AudioEye[^;]*;/g, '');
+    cleanText = cleanText.replace(/AudioEye\.[^;]*;/g, '');
+    cleanText = cleanText.replace(/\$ae\([^)]*\)[^;]*;/g, '');
+    cleanText = cleanText.replace(/ele\.outerFind\([^;]*;/g, '');
+    cleanText = cleanText.replace(/api\.\w+\([^;]*;/g, '');
+    
+    // Remove JavaScript fragments and function calls
+    cleanText = cleanText.replace(/angular\.module\([^;]*\);/g, '');
+    cleanText = cleanText.replace(/var\s+\w+\s*=\s*function[^}]*}/g, '');
+    cleanText = cleanText.replace(/function\s*\([^)]*\)\s*\{[^}]*\}/g, '');
+    cleanText = cleanText.replace(/\w+\(\)\{[^}]*\}/g, '');
+    cleanText = cleanText.replace(/\w+\s*:\s*function\([^}]*\}/g, '');
+    
+    // Remove JSON-LD and configuration objects
+    cleanText = cleanText.replace(/"@type":\s*"[^"]*"[^}]*}/g, '');
+    cleanText = cleanText.replace(/"[^"]*":\s*\[[^\]]*\]/g, '');
+    cleanText = cleanText.replace(/\w+\s*=\s*\{[^}]*\}/g, '');
+    cleanText = cleanText.replace(/\.constant\([^)]*\)/g, '');
+    
+    // Remove broken JavaScript syntax
+    cleanText = cleanText.replace(/\}\s*\)\s*\{/g, '');
+    cleanText = cleanText.replace(/\}\s*;\s*!/g, '');
+    cleanText = cleanText.replace(/\/\/\s*#\s*sourceURL[^\n]*/g, '');
+    cleanText = cleanText.replace(/\/\*[^*]*\*\//g, '');
+    cleanText = cleanText.replace(/\s*\)\s*\{[^}]*\}/g, '');
+    
+    // Clean up HTML tags and CSS selectors
+    cleanText = cleanText.replace(/<[^>]*>/g, '');
+    cleanText = cleanText.replace(/{[^}]*}/g, '');
+    cleanText = cleanText.replace(/\.[a-zA-Z-]+\s*\{[^}]*\}/g, '');
+    cleanText = cleanText.replace(/#[a-zA-Z-]+\s*\{[^}]*\}/g, '');
+    
+    // Remove accessibility/widget noise and interface elements
+    cleanText = cleanText.replace(/Skip to Main Content/g, '');
+    cleanText = cleanText.replace(/Opens in new window/g, '');
+    cleanText = cleanText.replace(/Share on \w+ - Opens a New Window/g, '');
+    cleanText = cleanText.replace(/Bespoke Resume.*?Processing\.\.\./g, '');
+    cleanText = cleanText.replace(/Explore your accessibility options/g, '');
+    cleanText = cleanText.replace(/close carousel/g, '');
+    cleanText = cleanText.replace(/Attachment Options/g, '');
+    cleanText = cleanText.replace(/You have been redirected to.*?page/g, '');
+    
+    // Remove technical artifacts
+    cleanText = cleanText.replace(/https?:\/\/[^\s]+/g, '');
+    cleanText = cleanText.replace(/Jobvite\s*=\s*\{[^}]*\}/g, '');
+    
+    // Remove broken JavaScript fragments and syntax
+    cleanText = cleanText.replace(/\s*\)\s*\{[^}]*\}/g, '');
+    cleanText = cleanText.replace(/\s*\}\s*\)/g, '');
+    cleanText = cleanText.replace(/;\s*}/g, '');
+    cleanText = cleanText.replace(/\s*\)\s*;/g, '');
+    cleanText = cleanText.replace(/\}\s*\)\s*\{[^}]*\}/g, '');
+    cleanText = cleanText.replace(/\w+\([^)]*\)\s*\{[^}]*\}/g, '');
+    cleanText = cleanText.replace(/\w+\s*\([^)]*\)[^;]*;/g, '');
+    cleanText = cleanText.replace(/if\s*\([^)]*\)\s*\{[^}]*\}/g, '');
+    cleanText = cleanText.replace(/else\s*if\s*\([^)]*\)\s*\{[^}]*\}/g, '');
+    cleanText = cleanText.replace(/\s*\)\s*$/gm, ''); // remove trailing )
+    cleanText = cleanText.replace(/^\s*\{\s*/gm, ''); // remove leading {
+    cleanText = cleanText.replace(/\s*\}\s*$/gm, ''); // remove trailing }
+    
+    // Remove attribute assignments and method calls
+    cleanText = cleanText.replace(/\w+\s*\([^)]*\)\s*\.\w+\s*\([^)]*\)/g, '');
+    cleanText = cleanText.replace(/\.\w+\([^)]*\)[^;]*;/g, '');
+    cleanText = cleanText.replace(/\.attr\([^)]*\)/g, '');
+    cleanText = cleanText.replace(/\.removeAttr\([^)]*\)/g, '');
+    cleanText = cleanText.replace(/api\.\w+/g, '');
+    
+    // Remove incomplete statements and fragments
+    cleanText = cleanText.replace(/\s*\)\s*\{\s*$/gm, '');
+    cleanText = cleanText.replace(/^\s*\}\s*;\s*/gm, '');
+    cleanText = cleanText.replace(/^\s*\w+\s*\([^)]*$/gm, '');
+    cleanText = cleanText.replace(/^\s*\w+\s*$/gm, '');
+    cleanText = cleanText.replace(/^\s*[;,]\s*/gm, '');
+    
+    // Clean up whitespace and get substantial content
+    cleanText = cleanText
+      .replace(/\s+/g, ' ') // normalize whitespace
+      .replace(/^\s*,\s*/g, '') // remove leading commas
+      .replace(/\s*;\s*/g, ' ') // remove semicolons
+      .replace(/\s*\.\s*\./g, '.') // fix double periods
+      .trim();
+    
+    if (this.debugMode) {
+      console.log('Body text length after cleanup:', cleanText.length);
+      console.log('Preview:', cleanText.substring(0, 200) + '...');
+    }
+    
+    return cleanText.substring(0, 100000);
+  }
+
 
   private observePageChanges(): void {
     const observer = new MutationObserver((mutations) => {

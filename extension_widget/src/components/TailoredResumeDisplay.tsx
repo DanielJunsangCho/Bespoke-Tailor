@@ -26,7 +26,6 @@ const TailoredResumeDisplay: React.FC<TailoredResumeDisplayProps> = ({ tailoredR
     <div className="tailored-resume-display">
       <div className="tailored-resume-header">
         <h4>Tailored Resume Ready</h4>
-        <span className="company-name">{tailoredResume.company}</span>
       </div>
       
       <div 
@@ -50,9 +49,6 @@ const TailoredResumeDisplay: React.FC<TailoredResumeDisplayProps> = ({ tailoredR
           >
             ⬇️
           </button>
-          <div className="drag-indicator" title="Drag to upload">
-            ↕️
-          </div>
         </div>
       </div>
       

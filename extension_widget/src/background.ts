@@ -1,5 +1,7 @@
 import { JobData, BaseResume, ChromeMessage, ChromeMessageResponse } from './types/resume';
 
+declare const __API_URL__: string;
+
 class BackgroundService {
   constructor() {
     this.init();
@@ -97,28 +99,37 @@ class BackgroundService {
   }
 
   private async tailorResume(jobData: JobData, baseResume: BaseResume) {
-    const apiUrl = process.env.REACT_APP_API_URL;
+    const apiUrl = `${__API_URL__}/api/tailor_resume`
+    console.log("API URL:", apiUrl);
     if (!apiUrl) {
       throw new Error("API URL is not defined in environment variables");
     }
 
-    await fetch(apiUrl, {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({ resume_data: baseResume, job_description: jobData })
-    })
-      .then(response => {
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        return response.json();
-      })
-      .then(data => {
-        return data.result;
-      })
-      .catch(error => {
-        console.error('Fetch error:', error);
-      })
+    try {
+      const requestBody = { resume_data: baseResume.originalContent, job_description: jobData.description };
+      console.log('Request body:', JSON.stringify(requestBody, null, 2));
+      
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        mode: 'cors',
+        body: JSON.stringify(requestBody)
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log('Tailoring response:', data);
+      return data.result;
+    } catch (error) {
+      console.error('Fetch error:', error);
+      throw error;
+    }
   }
 }
 

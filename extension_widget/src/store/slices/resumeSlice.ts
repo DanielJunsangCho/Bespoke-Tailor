@@ -134,6 +134,7 @@ const resumeSlice = createSlice({
         state.error = null;
       })
       .addCase(tailorResume.rejected, (state, action) => {
+        console.log("tailoring failed ts");
         state.isLoading = false;
         state.error = action.error.message || 'Tailoring failed';
       })

@@ -18,6 +18,7 @@
   margin: 0;
   font-size: 16px;
   font-weight: 600;
+  color: rgb(255, 255, 255);
 }
 
 .company-name {
@@ -31,7 +32,7 @@
 .tailored-resume-item {
   display: flex;
   align-items: center;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(220, 212, 212, 0.1);
   border-radius: 8px;
   padding: 12px;
   cursor: grab;

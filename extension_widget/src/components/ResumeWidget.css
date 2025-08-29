@@ -17,8 +17,8 @@
     0 0 0 1px rgba(255, 255, 255, 0.05);
   z-index: 999999;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  overflow: hidden;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow-y: auto;
 }
 
 .ai-resume-tailor-widget:hover {

@@ -59,7 +59,6 @@ class ContentScript {
         store.dispatch(setCurrentJob(currentJobData));
 
         if (isCurrentlyOnJobPage && !this.widgetContainer) {
-          console.log("yay");
           this.showWidget();
         }
         console.log('Job data updated:', currentJobData);
