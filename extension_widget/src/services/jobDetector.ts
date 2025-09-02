@@ -317,7 +317,8 @@ export class JobPageDetector {
   }
 
   private extractJobDescription(): string {
-    // Get full body text first
+    // Get clean body text first
+    document.querySelectorAll('script, style, noscript, form').forEach(el => el.remove());
     const bodyText = document.body.textContent || '';
     
     // Remove noise elements
@@ -348,73 +349,39 @@ export class JobPageDetector {
     cleanText = cleanText.replace(/ele\.outerFind\([^;]*;/g, '');
     cleanText = cleanText.replace(/api\.\w+\([^;]*;/g, '');
     
-    // Remove JavaScript fragments and function calls
-    cleanText = cleanText.replace(/angular\.module\([^;]*\);/g, '');
-    cleanText = cleanText.replace(/var\s+\w+\s*=\s*function[^}]*}/g, '');
-    cleanText = cleanText.replace(/function\s*\([^)]*\)\s*\{[^}]*\}/g, '');
-    cleanText = cleanText.replace(/\w+\(\)\{[^}]*\}/g, '');
-    cleanText = cleanText.replace(/\w+\s*:\s*function\([^}]*\}/g, '');
-    
-    // Remove JSON-LD and configuration objects
-    cleanText = cleanText.replace(/"@type":\s*"[^"]*"[^}]*}/g, '');
+    // Remove JSON-LD structured data blocks
+    cleanText = cleanText.replace(/\{\s*"@context":\s*"[^"]*"[^}]*\}(?:\s*\})*[^}]*\}/g, '');
+    cleanText = cleanText.replace(/"[^"]*":\s*\{[^}]*\}/g, '');
     cleanText = cleanText.replace(/"[^"]*":\s*\[[^\]]*\]/g, '');
-    cleanText = cleanText.replace(/\w+\s*=\s*\{[^}]*\}/g, '');
-    cleanText = cleanText.replace(/\.constant\([^)]*\)/g, '');
     
-    // Remove broken JavaScript syntax
-    cleanText = cleanText.replace(/\}\s*\)\s*\{/g, '');
-    cleanText = cleanText.replace(/\}\s*;\s*!/g, '');
-    cleanText = cleanText.replace(/\/\/\s*#\s*sourceURL[^\n]*/g, '');
-    cleanText = cleanText.replace(/\/\*[^*]*\*\//g, '');
-    cleanText = cleanText.replace(/\s*\)\s*\{[^}]*\}/g, '');
+    // Remove large form configuration blocks
+    cleanText = cleanText.replace(/gform[^}]*\}[^}]*\}/g, '');
+    cleanText = cleanText.replace(/wp\.i18n[^}]*\}/g, '');
+    cleanText = cleanText.replace(/var\s+gform_theme_config\s*=[^;]*;/g, '');
+    cleanText = cleanText.replace(/angular\.module\([^}]*\}[^}]*\}/g, '');
     
-    // Clean up HTML tags and CSS selectors
-    cleanText = cleanText.replace(/<[^>]*>/g, '');
-    cleanText = cleanText.replace(/{[^}]*}/g, '');
-    cleanText = cleanText.replace(/\.[a-zA-Z-]+\s*\{[^}]*\}/g, '');
-    cleanText = cleanText.replace(/#[a-zA-Z-]+\s*\{[^}]*\}/g, '');
+    // Remove accessibility enhancement scripts (ae_f blocks)
+    cleanText = cleanText.replace(/!\s*\}\s*\(ae_f\)[^}]*$/gm, '');
+    cleanText = cleanText.replace(/\/\/#\s*sourceURL=[^\n]*\n/g, '');
+    cleanText = cleanText.replace(/\[AEI-\d+\][^}]*/g, '');
+    cleanText = cleanText.replace(/\/\/\s*Commented out line[^}]*/g, '');
     
-    // Remove accessibility/widget noise and interface elements
+    // Remove CSS variable blocks and inline styles
+    cleanText = cleanText.replace(/--[\w-]+:\s*[^;]*;/g, '');
+    cleanText = cleanText.replace(/style=\\?"[^"]*\\?"/g, '');
+    
+    // Remove navigation and interface noise
     cleanText = cleanText.replace(/Skip to Main Content/g, '');
     cleanText = cleanText.replace(/Opens in new window/g, '');
-    cleanText = cleanText.replace(/Share on \w+ - Opens a New Window/g, '');
     cleanText = cleanText.replace(/Bespoke Resume.*?Processing\.\.\./g, '');
+    cleanText = cleanText.replace(/© \d{4} [^\.]*\. All rights reserved\./g, '');
+    cleanText = cleanText.replace(/Attachment Options/g, '');
     cleanText = cleanText.replace(/Explore your accessibility options/g, '');
     cleanText = cleanText.replace(/close carousel/g, '');
-    cleanText = cleanText.replace(/Attachment Options/g, '');
-    cleanText = cleanText.replace(/You have been redirected to.*?page/g, '');
     
-    // Remove technical artifacts
+    // Remove URLs and technical artifacts
     cleanText = cleanText.replace(/https?:\/\/[^\s]+/g, '');
-    cleanText = cleanText.replace(/Jobvite\s*=\s*\{[^}]*\}/g, '');
-    
-    // Remove broken JavaScript fragments and syntax
-    cleanText = cleanText.replace(/\s*\)\s*\{[^}]*\}/g, '');
-    cleanText = cleanText.replace(/\s*\}\s*\)/g, '');
-    cleanText = cleanText.replace(/;\s*}/g, '');
-    cleanText = cleanText.replace(/\s*\)\s*;/g, '');
-    cleanText = cleanText.replace(/\}\s*\)\s*\{[^}]*\}/g, '');
-    cleanText = cleanText.replace(/\w+\([^)]*\)\s*\{[^}]*\}/g, '');
-    cleanText = cleanText.replace(/\w+\s*\([^)]*\)[^;]*;/g, '');
-    cleanText = cleanText.replace(/if\s*\([^)]*\)\s*\{[^}]*\}/g, '');
-    cleanText = cleanText.replace(/else\s*if\s*\([^)]*\)\s*\{[^}]*\}/g, '');
-    cleanText = cleanText.replace(/\s*\)\s*$/gm, ''); // remove trailing )
-    cleanText = cleanText.replace(/^\s*\{\s*/gm, ''); // remove leading {
-    cleanText = cleanText.replace(/\s*\}\s*$/gm, ''); // remove trailing }
-    
-    // Remove attribute assignments and method calls
-    cleanText = cleanText.replace(/\w+\s*\([^)]*\)\s*\.\w+\s*\([^)]*\)/g, '');
-    cleanText = cleanText.replace(/\.\w+\([^)]*\)[^;]*;/g, '');
-    cleanText = cleanText.replace(/\.attr\([^)]*\)/g, '');
-    cleanText = cleanText.replace(/\.removeAttr\([^)]*\)/g, '');
-    cleanText = cleanText.replace(/api\.\w+/g, '');
-    
-    // Remove incomplete statements and fragments
-    cleanText = cleanText.replace(/\s*\)\s*\{\s*$/gm, '');
-    cleanText = cleanText.replace(/^\s*\}\s*;\s*/gm, '');
-    cleanText = cleanText.replace(/^\s*\w+\s*\([^)]*$/gm, '');
-    cleanText = cleanText.replace(/^\s*\w+\s*$/gm, '');
-    cleanText = cleanText.replace(/^\s*[;,]\s*/gm, '');
+    cleanText = cleanText.replace(/Jobvite\s*=[^}]*\}/g, '');
     
     // Clean up whitespace and get substantial content
     cleanText = cleanText

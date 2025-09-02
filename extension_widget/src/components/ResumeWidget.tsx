@@ -3,7 +3,6 @@ import { useAppSelector, useAppDispatch } from '../hooks/redux';
 import { loadResumeHistory, tailorResume } from '../store/slices/resumeSlice';
 import { useResumeUpload } from '../hooks/useResumeUpload';
 import TailoredResumeDisplay from './TailoredResumeDisplay';
-import './ResumeWidget.css';
 
 interface ResumeWidgetProps {
   jobData: any; // Keep for backwards compatibility but use Redux data
@@ -127,7 +126,7 @@ export const ResumeWidget: React.FC<ResumeWidgetProps> = ({ onClose }) => {
 
           <div id="loadingSection" className={`loading-section ${!showLoading && !showTailorLoading && !isLoading ? 'hidden' : ''}`}>
             <div className="spinner"></div>
-            <span id="loadingText">{loadingMessage || tailorLoadingMessage || 'Processing...'}</span>
+            <span id="loadingText">{tailorLoadingMessage || loadingMessage || 'Processing...'}</span>
           </div>
 
           {error && (

@@ -61,12 +61,17 @@
 
 .resume-info {
   flex: 1;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .resume-title {
   font-weight: 600;
   font-size: 14px;
   margin-bottom: 2px;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  hyphens: auto;
 }
 
 .resume-date {

@@ -6,7 +6,7 @@ The crxjs-project uses React/TypeScript with Redux for state management. Key com
 - `content/main.tsx`: React content script with periodic job detection and Redux store updates
 - `components/ResumeWidget.tsx`: React widget with Redux reactivity, prepared for MCP server integration
 - `components/HistoryPage.tsx`: Resume history management without Google Docs dependencies
-- `services/jobDetector.ts`: MutationObserver with 500ms periodic checks for real-time job detection
+- `services/jobDetector.ts`: Confidence-based job detection with scoring system and smart content extraction
 - `store/slices/resumeSlice.ts`: Redux state for resume upload and history with composite ID system
 
 ## 2025-08-08  Compact Session
@@ -111,3 +111,27 @@ Fixed Chrome extension service worker message passing errors and removed Google 
 
 ### #Background
 Extension architecture simplified and prepared for MCP server integration, removing Google Docs dependencies and fixing message passing reliability
+
+## 2025-08-29 – Compact Session
+
+### #CurrentFocus
+Refactored job detection to use unified confidence-based scoring instead of hardcoded selectors for better accuracy across job sites
+
+### #SessionChanges  
+" Replaced hardcoded job board selectors with flexible scoring system evaluating content quality and element specificity
+" Simplified job description extraction to use full body text with smart noise filtering instead of complex selector chains
+" Enhanced company name extraction with meta tag priority, comprehensive selectors, and Greenhouse subdomain detection
+" Added debug logging for description and company extraction to troubleshoot detection issues
+" Unified all job detection through detectCompanyJobPage method removing brittle site-specific patterns
+
+### #NextSteps
+" Test improved job detection accuracy on various job sites (LinkedIn, Indeed, Glassdoor, Greenhouse)
+" Verify company name extraction works correctly across different job board architectures
+" Validate description content quality and completeness after noise removal
+
+### #BugsAndTheories
+" Empty descriptions on job sites ⇒ Overly restrictive selectors not matching actual page structure
+" Missing company names ⇒ Hardcoded selectors failing on modern job board layouts
+
+### #Background
+Moved from brittle hardcoded job board patterns to adaptive confidence scoring system that evaluates content contextually

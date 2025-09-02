@@ -7,13 +7,24 @@ interface TailoredResumeDisplayProps {
 }
 
 const TailoredResumeDisplay: React.FC<TailoredResumeDisplayProps> = ({ tailoredResume }) => {
-  const handleDownload = () => {
-    const link = document.createElement('a');
-    link.href = tailoredResume.pdfUrl;
-    link.download = `${tailoredResume.company}_${tailoredResume.jobTitle}_Resume.pdf`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+  const handleDownload = async () => {
+    try {
+      const fileName = `${tailoredResume.company}_${tailoredResume.jobTitle}_Resume.pdf`;
+      
+      const response = await chrome.runtime.sendMessage({
+        action: 'downloadPDF',
+        pdfUrl: tailoredResume.pdfUrl,
+        fileName: fileName
+      });
+
+      if (!response.success) {
+        throw new Error(response.error || 'Download failed');
+      }
+
+      console.log('Download initiated:', response.data);
+    } catch (error) {
+      console.error('Error downloading PDF:', error);
+    }
   };
 
   const handleDragStart = (e: React.DragEvent<HTMLDivElement>) => {
@@ -53,7 +64,7 @@ const TailoredResumeDisplay: React.FC<TailoredResumeDisplayProps> = ({ tailoredR
       </div>
       
       <div className="usage-hint">
-        Drag the resume to upload fields or click download
+        Drag the resume or click download
       </div>
     </div>
   );

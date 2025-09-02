@@ -63,6 +63,15 @@ class BackgroundService {
           sendResponse({ success: true, data: tailorResult});
           break;
 
+        case 'downloadPDF':
+          if (!request.pdfUrl || !request.fileName) {
+            sendResponse({ success: false, error: 'PDF URL and filename are required' });
+            return;
+          }
+          const downloadResult = await this.downloadPDF(request.pdfUrl, request.fileName);
+          sendResponse({ success: true, data: downloadResult });
+          break;
+
         case 'openHistoryPage':
           await chrome.tabs.create({ url: chrome.runtime.getURL('src/pages/history.html') });
           sendResponse({ success: true });
@@ -100,12 +109,15 @@ class BackgroundService {
 
   private async tailorResume(jobData: JobData, baseResume: BaseResume) {
     const apiUrl = `${__API_URL__}/api/tailor_resume`
-    console.log("API URL:", apiUrl);
     if (!apiUrl) {
       throw new Error("API URL is not defined in environment variables");
     }
 
     try {
+      if (!baseResume.originalContent) {
+        throw new Error('Resume content is missing');
+      }
+
       const requestBody = { resume_data: baseResume.originalContent, job_description: jobData.description };
       console.log('Request body:', JSON.stringify(requestBody, null, 2));
       
@@ -120,15 +132,51 @@ class BackgroundService {
       });
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        const errorText = await response.text();
+        console.error(`HTTP ${response.status} error:`, errorText);
+        throw new Error(`HTTP error! status: ${response.status}, details: ${errorText}`);
       }
 
       const data = await response.json();
-      console.log('Tailoring response:', data);
+
+      if (data.result.includes("Error")) {
+        console.error('Backend error: ', data.result);
+        throw new Error(`Backend error, status: ${data.result}`);
+      } else if (data.result === '') {
+        throw new Error("Unsuccessful tailoring.")
+      }
+      
       return data.result;
     } catch (error) {
       console.error('Fetch error:', error);
       throw error;
+    }
+  }
+
+  private async downloadPDF(pdfUrl: string, fileName: string): Promise<string> {
+    try {
+      // Fetch directly from your Railway domain (no CORS issues)
+      const response = await fetch(pdfUrl);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch PDF: ${response.status}`);
+      }
+
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+
+      // Use Chrome downloads API to save the file
+      await chrome.downloads.download({
+        url: url,
+        filename: fileName,
+        saveAs: true
+      });
+
+      // Clean up the blob URL
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      return `Download started: ${fileName}`;
+    } catch (error) {
+      console.error('Error downloading PDF:', error);
+      throw new Error('Failed to download tailored resume');
     }
   }
 }

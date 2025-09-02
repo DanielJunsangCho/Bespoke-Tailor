@@ -65,6 +65,7 @@ export interface ChromeMessage {
   fileName?: string;
   fileType?: string;
   baseResume?: BaseResume;
+  pdfUrl?: string;
 }
 
 export interface ChromeMessageResponse {

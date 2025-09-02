@@ -27,6 +27,7 @@ export default defineManifest({
     'storage',
     'identity',
     'scripting',
+    'downloads',
   ],
   host_permissions: [
     'https://*/*',
