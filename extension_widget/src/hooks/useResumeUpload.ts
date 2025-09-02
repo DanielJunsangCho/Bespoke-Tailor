@@ -74,13 +74,33 @@ export const useResumeUpload = () => {
       }
     };
 
-    input.onchange = async (event) => {
+    // Handle file selection or cancellation
+    const handleFileSelection = async (event: Event) => {
       const file = (event.target as HTMLInputElement).files?.[0];
       if (file) {
         await processFile(file);
+      } else {
+        // User cancelled - hide loading state
+        setShowLoading(false);
       }
       document.body.removeChild(input);
     };
+
+    // Detect cancellation using focus events as fallback
+    const handleCancel = () => {
+      setTimeout(() => {
+        // Check if input still exists and no file was selected
+        if (document.body.contains(input) && !input.files?.length) {
+          setShowLoading(false);
+          document.body.removeChild(input);
+        }
+      }, 100);
+    };
+
+    input.onchange = handleFileSelection;
+    
+    // Add focus event listener to detect when dialog is closed without selection
+    window.addEventListener('focus', handleCancel, { once: true });
     
     document.body.appendChild(input);
     setTimeout(() => input.click(), 10);

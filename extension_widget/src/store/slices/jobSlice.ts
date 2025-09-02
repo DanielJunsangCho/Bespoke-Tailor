@@ -8,16 +8,8 @@ interface JobState {
   extractionError: string | null;
 }
 
-const testJob: JobData = {
-  title: 'Forward Deployed Software Engineer',
-  company: 'Google',
-  url: 'https://www.google.com',
-  description: 'Software engineer with 5 years of experience in React and Node.js',
-  timestamp: '2021-01-01',
-}
-
 const initialState: JobState = {
-  currentJob: testJob,
+  currentJob: null,
   isJobPageDetected: false,
   isExtracting: false,
   extractionError: null,

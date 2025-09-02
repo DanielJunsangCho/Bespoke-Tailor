@@ -10,18 +10,18 @@ interface ResumeState {
   uploadStatus: 'idle' | 'uploading' | 'success' | 'error';
 }
 
-const testResume: TailoredResume = {
-  jobTitle: 'Software Engineer (Platform)',
-  company: 'GovDash',
-  jobUrl: 'https://jobs.ashbyhq.com/govdash/bcefc8d6-a3e5-4c2e-9b0d-11233df1b7c2',
-  pdfUrl: 'https://www.google.com',
-  createdDate: '2021-01-01',
-  aiAnalysis: {}
-}
+// const testResume: TailoredResume = {
+//   jobTitle: 'Software Engineer (Platform)',
+//   company: 'GovDash',
+//   jobUrl: 'https://jobs.ashbyhq.com/govdash/bcefc8d6-a3e5-4c2e-9b0d-11233df1b7c2',
+//   pdfUrl: 'https://www.google.com',
+//   createdDate: '2021-01-01',
+//   aiAnalysis: {}
+// }
 
 const initialState: ResumeState = {
   baseResume: null,
-  tailoredResumes: [testResume],
+  tailoredResumes: [],
   currentATSReport: null,
   isLoading: false,
   error: null,
