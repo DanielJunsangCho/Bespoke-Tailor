@@ -52,13 +52,18 @@ export const ResumeWidget: React.FC<ResumeWidgetProps> = ({ onClose }) => {
   // Get tailored resume for the current job page
   const getCurrentPageTailoredResume = () => {
     if (!jobData || tailoredResumes.length === 0) return null;
-    
-    // Find the most recent tailored resume for this company/job
-    return tailoredResumes.find(resume => 
-      resume.company === jobData.company && 
+    console.log("yuuuuuup",tailoredResumes.find(resume => 
+      resume.jobTitle === jobData.title && 
       resume.jobUrl === jobData.url
     ) || tailoredResumes.find(resume => 
-      resume.company === jobData.company
+      resume.jobTitle === jobData.title
+    ));
+    // Find the most recent tailored resume for this job title/URL
+    return tailoredResumes.find(resume => 
+      resume.jobTitle === jobData.title && 
+      resume.jobUrl === jobData.url
+    ) || tailoredResumes.find(resume => 
+      resume.jobTitle === jobData.title
     );
   };
 
@@ -83,7 +88,7 @@ export const ResumeWidget: React.FC<ResumeWidgetProps> = ({ onClose }) => {
           </div>
           <div id="jobDetectionDetail">
             {jobData 
-              ? `${jobData.title}${jobData.company ? ' at ' + jobData.company : ''}`
+              ? `${jobData.title}`
               : 'Finding opportunity...'
             }
           </div>

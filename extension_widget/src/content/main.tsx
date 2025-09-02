@@ -442,6 +442,11 @@ class ContentScript {
 
       /* TailoredResumeDisplay styles */
       .tailored-resume-display {
+        display: block !important;
+        min-height: 60px !important;
+        overflow: visible !important;
+        line-height: normal !important;
+
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         border-radius: 12px;
         padding: 16px;
@@ -510,12 +515,7 @@ class ContentScript {
       .resume-title {
         font-weight: 600;
         font-size: 14px;
-        margin-bottom: 2px;
-      }
-
-      .resume-date {
-        font-size: 12px;
-        opacity: 0.8;
+        margin-bottom: 4px;
       }
 
       .resume-actions {

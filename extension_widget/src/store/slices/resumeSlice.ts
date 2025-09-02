@@ -10,9 +10,18 @@ interface ResumeState {
   uploadStatus: 'idle' | 'uploading' | 'success' | 'error';
 }
 
+const testResume: TailoredResume = {
+  jobTitle: 'Software Engineer (Platform)',
+  company: 'GovDash',
+  jobUrl: 'https://jobs.ashbyhq.com/govdash/bcefc8d6-a3e5-4c2e-9b0d-11233df1b7c2',
+  pdfUrl: 'https://www.google.com',
+  createdDate: '2021-01-01',
+  aiAnalysis: {}
+}
+
 const initialState: ResumeState = {
   baseResume: null,
-  tailoredResumes: [],
+  tailoredResumes: [testResume],
   currentATSReport: null,
   isLoading: false,
   error: null,
@@ -87,7 +96,7 @@ const resumeSlice = createSlice({
     },
     deleteResumeFromHistory: (state, action: PayloadAction<string>) => {
       state.tailoredResumes = state.tailoredResumes.filter(
-        resume => `${resume.company}-${resume.createdDate}` !== action.payload
+        resume => `${resume.jobTitle}-${resume.createdDate.split('T')[0]}` !== action.payload
       );
     },
     clearAllResumes: (state) => {
@@ -142,7 +151,9 @@ const resumeSlice = createSlice({
       // Load history cases
       .addCase(loadResumeHistory.fulfilled, (state, action) => {
         state.baseResume = action.payload.baseResume;
-        state.tailoredResumes = action.payload.resumeHistory;
+        if (action.payload.resumeHistory.length > 0) {
+          state.tailoredResumes = action.payload.resumeHistory;
+        }
       });
   },
 });

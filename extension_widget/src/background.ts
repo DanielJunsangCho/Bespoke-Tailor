@@ -155,28 +155,17 @@ class BackgroundService {
 
   private async downloadPDF(pdfUrl: string, fileName: string): Promise<string> {
     try {
-      // Fetch directly from your Railway domain (no CORS issues)
-      const response = await fetch(pdfUrl);
-      if (!response.ok) {
-        throw new Error(`Failed to fetch PDF: ${response.status}`);
-      }
-
-      const blob = await response.blob();
-      const url = URL.createObjectURL(blob);
-
-      // Use Chrome downloads API to save the file
-      await chrome.downloads.download({
-        url: url,
-        filename: fileName,
-        saveAs: true
+      // Use Chrome downloads API directly with the PDF URL
+      const downloadId = await chrome.downloads.download({
+        url: pdfUrl,
+        filename: fileName
       });
-
-      // Clean up the blob URL
-      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      console.log('Download ID:', downloadId);
+      
       return `Download started: ${fileName}`;
     } catch (error) {
       console.error('Error downloading PDF:', error);
-      throw new Error('Failed to download tailored resume');
+      throw new Error(`Failed to download tailored resume: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
 }

@@ -7,10 +7,14 @@ interface TailoredResumeDisplayProps {
 }
 
 const TailoredResumeDisplay: React.FC<TailoredResumeDisplayProps> = ({ tailoredResume }) => {
+  console.log("this is happening here", tailoredResume);
+
+  const date = new Date(tailoredResume.createdDate).toISOString().split('T')[0];
+  console.log("this is happening here", date);
+  const fileName = `${tailoredResume.jobTitle}_${date}_Resume.pdf`;
+
   const handleDownload = async () => {
     try {
-      const fileName = `${tailoredResume.company}_${tailoredResume.jobTitle}_Resume.pdf`;
-      
       const response = await chrome.runtime.sendMessage({
         action: 'downloadPDF',
         pdfUrl: tailoredResume.pdfUrl,
@@ -47,10 +51,7 @@ const TailoredResumeDisplay: React.FC<TailoredResumeDisplayProps> = ({ tailoredR
       >
         <div className="resume-icon">📄</div>
         <div className="resume-info">
-          <div className="resume-title">{tailoredResume.jobTitle}</div>
-          <div className="resume-date">
-            {new Date(tailoredResume.createdDate).toLocaleDateString()}
-          </div>
+          <div className="resume-title">{fileName}</div>
         </div>
         <div className="resume-actions">
           <button 

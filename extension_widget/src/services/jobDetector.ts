@@ -8,7 +8,7 @@ export class JobPageDetector {
   private recheckTimeout: number | null = null;
 
   constructor() {
-    this.debugMode = true;
+    this.debugMode = false;
     this.init();
   }
 
