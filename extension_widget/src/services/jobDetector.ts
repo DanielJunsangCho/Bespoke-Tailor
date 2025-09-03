@@ -352,11 +352,14 @@ export class JobPageDetector {
   }
 
   private extractJobDescription(): string {
-    // Get clean body text first
-    document.querySelectorAll('script, style, noscript, form').forEach(el => el.remove());
-    const bodyText = document.body.textContent || '';
+    // Clone the body to avoid modifying the live DOM
+    const bodyClone = document.body.cloneNode(true) as HTMLElement;
     
-    // Remove noise elements
+    // Remove noise elements from the clone
+    bodyClone.querySelectorAll('script, style, noscript, form').forEach(el => el.remove());
+    const bodyText = bodyClone.textContent || '';
+    
+    // Remove noise from text content without modifying DOM
     const elementsToRemove = [
       'nav', 'header', 'footer', '.nav', '.header', '.footer',
       '.menu', '.navigation', '.breadcrumb', '.sidebar', '.ads',

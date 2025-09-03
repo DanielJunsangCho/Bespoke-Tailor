@@ -73,12 +73,15 @@ export const ResumeWidget: React.FC<ResumeWidgetProps> = ({ onClose }) => {
     <div className="ai-resume-tailor-widget">
       <div className="widget-container">
         <div className="widget-header">
-          <button className="widget-close-btn" id="widgetCloseBtn" onClick={onClose} title="Close widget">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <line x1="18" y1="6" x2="6" y2="18" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-              <line x1="6" y1="6" x2="18" y2="18" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-            </svg>
-          </button>
+          <div className="top-row">
+            <img src={chrome.runtime.getURL("public/48-logo.png")} alt="Bespoke Resume" className="widget-logo" />
+            <button className="widget-close-btn" id="widgetCloseBtn" onClick={onClose} title="Close widget">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <line x1="18" y1="6" x2="6" y2="18" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                <line x1="6" y1="6" x2="18" y2="18" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+              </svg>
+            </button>
+          </div>
           <h3>Bespoke Resume</h3>
           <div className="job-detection">
             <div className={`job-detection-dot ${!jobData ? 'inactive' : ''}`} id="jobDetectionDot"></div>

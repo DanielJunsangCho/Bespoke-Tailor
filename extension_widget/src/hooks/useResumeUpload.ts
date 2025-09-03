@@ -83,16 +83,31 @@ export const useResumeUpload = () => {
         // User cancelled - hide loading state
         setShowLoading(false);
       }
-      document.body.removeChild(input);
+      // Remove from Shadow DOM or body based on where it was added
+      const widgetHost = document.getElementById('bespoke-resume-widget-host');
+      const shadowRoot = widgetHost?.shadowRoot;
+      if (shadowRoot && shadowRoot.contains(input)) {
+        shadowRoot.removeChild(input);
+      } else if (document.body.contains(input)) {
+        document.body.removeChild(input);
+      }
     };
 
     // Detect cancellation using focus events as fallback
     const handleCancel = () => {
       setTimeout(() => {
         // Check if input still exists and no file was selected
-        if (document.body.contains(input) && !input.files?.length) {
+        const widgetHost = document.getElementById('bespoke-resume-widget-host');
+        const shadowRoot = widgetHost?.shadowRoot;
+        const inputExists = (shadowRoot && shadowRoot.contains(input)) || document.body.contains(input);
+        
+        if (inputExists && !input.files?.length) {
           setShowLoading(false);
-          document.body.removeChild(input);
+          if (shadowRoot && shadowRoot.contains(input)) {
+            shadowRoot.removeChild(input);
+          } else if (document.body.contains(input)) {
+            document.body.removeChild(input);
+          }
         }
       }, 100);
     };
@@ -102,7 +117,14 @@ export const useResumeUpload = () => {
     // Add focus event listener to detect when dialog is closed without selection
     window.addEventListener('focus', handleCancel, { once: true });
     
-    document.body.appendChild(input);
+    // Append to Shadow DOM root if available, otherwise fallback to body
+    const widgetHost = document.getElementById('bespoke-resume-widget-host');
+    const shadowRoot = widgetHost?.shadowRoot;
+    if (shadowRoot) {
+      shadowRoot.appendChild(input);
+    } else {
+      document.body.appendChild(input);
+    }
     setTimeout(() => input.click(), 10);
   };
 

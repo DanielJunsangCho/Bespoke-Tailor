@@ -1,6 +1,5 @@
 import React from 'react';
 import { TailoredResume } from '../types/resume';
-import './TailoredResumeDisplay.css';
 
 interface TailoredResumeDisplayProps {
   tailoredResume: TailoredResume;

@@ -76,42 +76,58 @@ class ContentScript {
   }
 
   private async createWidget(): Promise<void> {
-    // Create widget host container
+    // Create widget host container (completely isolated from host page)
     this.widgetContainer = document.createElement('div');
     this.widgetContainer.id = 'bespoke-resume-widget-host';
+
+    // Completely neutral container - no styles that could affect host page
     this.widgetContainer.style.cssText = `
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      pointer-events: none;
-      z-index: 999999;
+      all: initial !important;
+      position: absolute !important;
+      top: 0 !important;
+      left: 0 !important;
+      width: 0 !important;
+      height: 0 !important;
+      border: none !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      z-index: auto !important;
+      overflow: visible !important;
+      pointer-events: none !important;
     `;
-    
-    // Create shadow DOM for complete CSS isolation
-    const shadowRoot = this.widgetContainer.attachShadow({ mode: 'closed' });
-    
-    // Create shadow container for React
+    document.body.appendChild(this.widgetContainer);
+  
+    // Create shadow DOM for CSS isolation
+    const shadowRoot = this.widgetContainer.attachShadow({ mode: 'open' }); // <-- use open for debugging
+  
+    // Shadow container for React root with proper isolation
     const shadowContainer = document.createElement('div');
     shadowContainer.style.cssText = `
-      width: 100%;
-      height: 100%;
-      pointer-events: none;
+      all: initial;
+      pointer-events: auto;
+      position: relative;
+      width: 100vw;
+      height: 100vh;
     `;
-    
-    // Inject CSS into shadow DOM
+  
+    // Inject scoped CSS
     const style = document.createElement('style');
-    style.textContent = this.getWidgetCSS();
+    style.textContent = this.getWidgetCSS()
+      // Rename keyframes to avoid global conflicts
+      .replace(/@keyframes\s+shimmer/g, '@keyframes widget-shimmer')
+      .replace(/@keyframes\s+spin/g, '@keyframes widget-spin')
+      // Also fix animation refs
+      .replace(/shimmer/g, 'widget-shimmer')
+      .replace(/spin/g, 'widget-spin');
+  
     shadowRoot.appendChild(style);
     shadowRoot.appendChild(shadowContainer);
-    
-    document.body.appendChild(this.widgetContainer);
-
-    // Create React root in shadow DOM
+  
+    // Create React root inside shadow
     this.widgetRoot = ReactDOM.createRoot(shadowContainer);
     this.renderWidget();
   }
+  
 
   private getWidgetCSS(): string {
     return `
@@ -157,12 +173,24 @@ class ContentScript {
         padding: 24px 20px;
         position: relative;
         overflow: hidden;
+        box-sizing: border-box;
+      }
+
+      .top-row {
+        display: flex;
+        justify-content: space-between; /* logo left, close button right */
+        align-items: center;
+        margin-bottom: 12px; /* gives spacing before the title */
+      }
+
+      .widget-logo {
+        width: 40px;
+        height: 40px;
+        opacity: 0.9;
+        pointer-events: none;
       }
 
       .widget-close-btn {
-        position: absolute;
-        top: -5px;
-        right: 8px;
         background: rgba(255, 255, 255, 0.2);
         border: none;
         border-radius: 50%;
@@ -174,7 +202,6 @@ class ContentScript {
         align-items: center;
         justify-content: center;
         transition: all 0.2s ease;
-        z-index: 10;
         backdrop-filter: blur(10px);
       }
 
@@ -296,12 +323,26 @@ class ContentScript {
           transparent, 
           rgba(255, 255, 255, 0.2), 
           transparent);
-        animation: shimmer 3s ease-in-out infinite;
+        animation: widget-shimmer 3s ease-in-out infinite;
       }
 
-      @keyframes shimmer {
+      @keyframes widget-shimmer {
         0% { left: -100%; }
         100% { left: 100%; }
+      }
+
+      .spinner {
+        width: 20px;
+        height: 20px;
+        border: 3px solid rgba(245, 158, 11, 0.2);
+        border-top: 3px solid #f59e0b;
+        border-radius: 50%;
+        animation: widget-spin 1s linear infinite;
+      }
+
+      @keyframes widget-spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
       }
 
       .action-buttons {
@@ -399,20 +440,6 @@ class ContentScript {
         border-radius: 16px;
         margin-top: 16px;
         backdrop-filter: blur(10px);
-      }
-
-      .spinner {
-        width: 20px;
-        height: 20px;
-        border: 3px solid rgba(245, 158, 11, 0.2);
-        border-top: 3px solid #f59e0b;
-        border-radius: 50%;
-        animation: spin 1s linear infinite;
-      }
-
-      @keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
       }
 
       .loading-section.hidden {
@@ -617,14 +644,10 @@ class ContentScript {
     // Render widget once - it will get updates via Redux
     this.widgetRoot.render(
       <Provider store={store}>
-        <div style={{ pointerEvents: 'none', width: '100%', height: '100%' }}>
-          <div style={{ pointerEvents: 'auto' }}>
-            <ResumeWidget 
-              jobData={null} // Deprecated - widget uses Redux data
-              onClose={this.hideWidget.bind(this)}
-            />
-          </div>
-        </div>
+        <ResumeWidget 
+          jobData={null} // Deprecated - widget uses Redux data
+          onClose={this.hideWidget.bind(this)}
+        />
       </Provider>
     );
   }

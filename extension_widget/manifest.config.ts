@@ -46,7 +46,7 @@ export default defineManifest({
   //   ]
   // },
   web_accessible_resources: [{
-    resources: ['src/pages/history.html', 'assets/*'],
+    resources: ['src/pages/history.html', 'assets/*', 'public/*.png'],
     matches: ['<all_urls>']
   }]
 })
