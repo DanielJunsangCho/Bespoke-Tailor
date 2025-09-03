@@ -5,7 +5,7 @@ export class JobPageDetector {
   private isJobPage: boolean = false;
   private jobData: JobData | null = null;
   private debugMode: boolean = false;
-  private recheckTimeout: number | null = null;
+  private recheckTimeout: ReturnType<typeof setTimeout> | null = null;
 
   constructor() {
     this.debugMode = false;
@@ -24,6 +24,25 @@ export class JobPageDetector {
   public isOnJobPage(): boolean {
     return this.isJobPage;
   }
+
+  private observePageChanges(): void {
+    let currentPage = location.href;
+
+    // Wait for page to load before first detection
+    setTimeout(() => {
+      console.log("Initial page load complete, detecting job page...");
+      this.detectJobPage();
+    }, 5000);
+
+    // listen for URL changes
+    setInterval(() => {
+        if (currentPage != location.href) {
+          console.log("URL changed to:", location.href);
+          currentPage = location.href;
+          this.detectJobPage();
+        }
+    }, 500);
+  } 
 
   private detectJobPage(): void {
     // Route everything through the improved generic detection
@@ -80,7 +99,23 @@ export class JobPageDetector {
       '.requirements, .qualifications, .responsibilities, .job-requirements',
       '.apply-button, .application-button, [class*="apply"], [href*="apply"]',
       '.job-meta, .job-info, .position-info, .job-summary',
-      '.salary, .compensation, .benefits, .job-benefits'
+      '.salary, .compensation, .benefits, .job-benefits',
+      // Indeed-specific selectors
+      '.jobsearch-JobComponent', '.jobsearch-JobDescriptionText',
+      '.jobsearch-ViewJobPane', '.jobsearch-ResultsList',
+      '.jobsearch-JobTitle', '.jobsearch-CompanyName',
+      '.jobsearch-JobMetadataHeader', '.jobsearch-JobDescriptionSection',
+      // LinkedIn selectors
+      '.job-details-jobs-unified-top-card__job-title',
+      '.jobs-description__content', '.jobs-box__group',
+      // Glassdoor selectors
+      '.job-title', '.job-description', '.job-details',
+      // General job board patterns
+      '[data-testid*="job"], [data-testid*="position"], [data-testid*="role"]',
+      '[data-cy*="job"], [data-cy*="position"], [data-cy*="role"]',
+      '[class*="job-"], [class*="position-"], [class*="role-"]',
+      '[id*="job"], [id*="position"], [id*="role"]',
+      '.job, .position, .role, .opening, .opportunity'
     ];
     
     const foundElements = jobSelectors.filter(selector => 
@@ -397,48 +432,6 @@ export class JobPageDetector {
     }
     
     return cleanText.substring(0, 100000);
-  }
-
-
-  private observePageChanges(): void {
-    const observer = new MutationObserver((mutations) => {
-      let shouldRecheck = false;
-      let significantChange = false;
-      
-      mutations.forEach((mutation) => {
-        if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
-          for (let node of mutation.addedNodes) {
-            if (node.nodeType === Node.ELEMENT_NODE) {
-              const element = node as Element;
-              if (element.textContent && element.textContent.length > 50 ||
-                  element.querySelector && (
-                    element.querySelector('h1, h2, .job-title, .position-title') ||
-                    element.querySelector('[class*="job"], [class*="position"], [class*="role"]')
-                  )) {
-                significantChange = true;
-                shouldRecheck = true;
-                break;
-              }
-            }
-          }
-        }
-      });
-
-      if (shouldRecheck && significantChange) {
-        if (this.recheckTimeout) {
-          clearTimeout(this.recheckTimeout);
-        }
-        this.recheckTimeout = window.setTimeout(() => {
-          console.log('Significant page change detected, updating job detection...');
-          this.detectJobPage();
-        }, 500);
-      }
-    });
-
-    observer.observe(document.body, {
-      childList: true,
-      subtree: true
-    });
   }
 
   public cleanup(): void {
